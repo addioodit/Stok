@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Stok",
+    "slug": "stok",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "stok",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "gy.stok.app"
+    },
+    "android": {
+      "package": "gy.stok.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1F6FEB"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "platforms": ["ios", "android", "web"]
+  }
+}
