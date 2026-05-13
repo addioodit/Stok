@@ -170,3 +170,48 @@ export function dividendsForSymbol(symbol: string): DividendDeclaration[] {
     (a, b) => b.exDate - a.exDate,
   );
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+interface HoldingLite {
+  symbol: string;
+  quantity: number;
+}
+
+export function upcomingDividends(
+  dividends: DividendDeclaration[],
+  now: number = Date.now(),
+): DividendDeclaration[] {
+  return dividends
+    .filter((d) => d.paymentDate >= now)
+    .sort((a, b) => a.paymentDate - b.paymentDate);
+}
+
+export function recentDividends(
+  dividends: DividendDeclaration[],
+  now: number = Date.now(),
+  windowDays = 180,
+): DividendDeclaration[] {
+  return dividends
+    .filter(
+      (d) =>
+        d.paymentDate < now && d.paymentDate >= now - windowDays * DAY_MS,
+    )
+    .sort((a, b) => b.paymentDate - a.paymentDate);
+}
+
+export function expectedIncome(
+  dividends: DividendDeclaration[],
+  holdings: HoldingLite[],
+  windowDays: number,
+  now: number = Date.now(),
+): number {
+  const cutoff = now + windowDays * DAY_MS;
+  return dividends
+    .filter((d) => d.paymentDate >= now && d.paymentDate <= cutoff)
+    .reduce((sum, d) => {
+      const h = holdings.find((x) => x.symbol === d.symbol);
+      if (!h || h.quantity <= 0) return sum;
+      return sum + h.quantity * d.perShare;
+    }, 0);
+}

@@ -7,7 +7,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DIVIDENDS } from '../data/dividends';
+import {
+  DIVIDENDS,
+  expectedIncome,
+  recentDividends,
+  upcomingDividends,
+} from '../data/dividends';
 import { findCompany } from '../data/companies';
 import { useDividends } from '../store/useDividends';
 import { usePortfolio } from '../store/usePortfolio';
@@ -33,20 +38,11 @@ export function DividendsScreen({ navigation }: Props) {
 
   const { upcoming, recent, expectedNext30 } = useMemo(() => {
     const now = Date.now();
-    const upcoming = DIVIDENDS.filter((d) => d.paymentDate >= now).sort(
-      (a, b) => a.paymentDate - b.paymentDate,
-    );
-    const recent = DIVIDENDS.filter(
-      (d) => d.paymentDate < now && d.paymentDate >= now - 180 * DAY_MS,
-    ).sort((a, b) => b.paymentDate - a.paymentDate);
-    const expectedNext30 = upcoming
-      .filter((d) => d.paymentDate <= now + 30 * DAY_MS)
-      .reduce((sum, d) => {
-        const h = holdings.find((x) => x.symbol === d.symbol);
-        if (!h || h.quantity <= 0) return sum;
-        return sum + h.quantity * d.perShare;
-      }, 0);
-    return { upcoming, recent, expectedNext30 };
+    return {
+      upcoming: upcomingDividends(DIVIDENDS, now),
+      recent: recentDividends(DIVIDENDS, now),
+      expectedNext30: expectedIncome(DIVIDENDS, holdings, 30, now),
+    };
   }, [holdings]);
 
   const qtyOf = (symbol: string) =>

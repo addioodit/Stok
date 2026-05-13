@@ -39,10 +39,13 @@ export const usePortfolio = create<PortfolioState>()(
             };
           }
           const newQty = existing.quantity + quantity;
+          // Only buys (positive quantity) shift the cost basis; sells reduce
+          // the position without changing the avg cost of the remaining shares.
           const newAvg =
-            newQty === 0
-              ? existing.avgCost
-              : (existing.avgCost * existing.quantity + price * quantity) / newQty;
+            quantity > 0 && newQty > 0
+              ? (existing.avgCost * existing.quantity + price * quantity) /
+                newQty
+              : existing.avgCost;
           return {
             holdings: s.holdings.map((h) =>
               h.symbol === symbol
