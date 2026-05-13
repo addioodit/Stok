@@ -10,6 +10,7 @@ export type TabsParamList = {
   Market: undefined;
   Watchlist: undefined;
   Portfolio: undefined;
+  Dividends: undefined;
   Settings: undefined;
 };
 

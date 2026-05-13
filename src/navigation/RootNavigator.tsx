@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MarketScreen } from '../screens/MarketScreen';
 import { WatchlistScreen } from '../screens/WatchlistScreen';
 import { PortfolioScreen } from '../screens/PortfolioScreen';
+import { DividendsScreen } from '../screens/DividendsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { StockDetailScreen } from '../screens/StockDetailScreen';
 import { OrderTicketScreen } from '../screens/OrderTicketScreen';
@@ -64,6 +65,15 @@ function TabsNavigator() {
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon label="💼" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="Dividends"
+        component={DividendsScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIcon label="💰" focused={focused} />
           ),
         }}
       />

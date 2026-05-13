@@ -10,11 +10,18 @@ import { useEffectiveCompany } from '../hooks/useCompanies';
 import { useWatchlist } from '../store/useWatchlist';
 import { usePortfolio } from '../store/usePortfolio';
 import { useHistory, selectHistoryFor } from '../store/useHistory';
+import { dividendsForSymbol } from '../data/dividends';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { LineChart } from '../components/LineChart';
 import { Segmented } from '../components/Segmented';
 import { theme } from '../theme';
-import { formatGYD, formatPct, formatQty, priceChange } from '../utils/format';
+import {
+  formatGYD,
+  formatMediumDate,
+  formatPct,
+  formatQty,
+  priceChange,
+} from '../utils/format';
 import { RootStackScreenProps } from '../navigation/types';
 
 type Props = RootStackScreenProps<'StockDetail'>;
@@ -137,6 +144,59 @@ export function StockDetailScreen({ route, navigation }: Props) {
           </View>
         )}
       </View>
+
+      {(() => {
+        const events = dividendsForSymbol(symbol);
+        if (events.length === 0) return null;
+        const ttmTotal = events
+          .filter((d) => d.paymentDate >= Date.now() - 365 * 24 * 60 * 60 * 1000)
+          .reduce((s, d) => s + d.perShare, 0);
+        const yieldPct =
+          company.lastPrice > 0 ? ttmTotal / company.lastPrice : 0;
+        return (
+          <View style={styles.holdingCard}>
+            <View style={styles.dividendHeader}>
+              <Text style={styles.cardTitle}>Dividends</Text>
+              {ttmTotal > 0 ? (
+                <Text style={styles.yieldChip}>
+                  {formatPct(yieldPct)} TTM yield
+                </Text>
+              ) : null}
+            </View>
+            {events.slice(0, 5).map((d) => {
+              const isFuture = d.paymentDate >= Date.now();
+              return (
+                <View key={d.id} style={styles.divRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.divAmount}>
+                      {formatGYD(d.perShare)}/share ·{' '}
+                      <Text style={styles.divType}>{d.type}</Text>
+                    </Text>
+                    <Text style={styles.divDate}>
+                      {isFuture ? 'Pays ' : 'Paid '}
+                      {formatMediumDate(d.paymentDate)}
+                    </Text>
+                  </View>
+                  {holding && holding.quantity > 0 ? (
+                    <Text
+                      style={[
+                        styles.divPayout,
+                        {
+                          color: isFuture
+                            ? theme.colors.positive
+                            : theme.colors.textSecondary,
+                        },
+                      ]}
+                    >
+                      {formatGYD(d.perShare * holding.quantity)}
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            })}
+          </View>
+        );
+      })()}
 
       {holding ? (
         <View style={styles.holdingCard}>
@@ -297,6 +357,44 @@ const styles = StyleSheet.create({
     fontSize: theme.font.body,
     fontWeight: '600',
     color: theme.colors.text,
+  },
+  dividendHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing(0.5),
+  },
+  yieldChip: {
+    marginLeft: 'auto',
+    fontSize: theme.font.tiny,
+    fontWeight: '700',
+    color: theme.colors.positive,
+    backgroundColor: '#E7F8EE',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: theme.radius.sm,
+    overflow: 'hidden',
+  },
+  divRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: theme.colors.border,
+  },
+  divAmount: {
+    fontSize: theme.font.small,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  divType: { color: theme.colors.textSecondary, fontWeight: '500' },
+  divDate: {
+    fontSize: theme.font.tiny,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
+  divPayout: {
+    fontSize: theme.font.small,
+    fontWeight: '700',
   },
   actions: {
     flexDirection: 'row',

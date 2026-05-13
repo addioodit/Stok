@@ -19,3 +19,22 @@ export function priceChange(last: number, prev: number) {
   const pct = prev === 0 ? 0 : diff / prev;
   return { diff, pct };
 }
+
+export function formatShortDate(ts: number): string {
+  return new Date(ts).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+export function formatMediumDate(ts: number): string {
+  return new Date(ts).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export function daysUntil(ts: number, now: number = Date.now()): number {
+  return Math.ceil((ts - now) / (24 * 60 * 60 * 1000));
+}

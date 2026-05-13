@@ -53,3 +53,17 @@ export interface UserSettings {
   brokerEmails: Record<string, string>;
   brokerAccounts: Record<string, string>;
 }
+
+export type DividendType = 'interim' | 'final' | 'special';
+
+export interface DividendDeclaration {
+  id: string;
+  symbol: string;
+  perShare: number;
+  currency: 'GYD';
+  type: DividendType;
+  declaredAt: number;
+  exDate: number;
+  paymentDate: number;
+  notes?: string;
+}

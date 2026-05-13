@@ -1,0 +1,172 @@
+import { DividendDeclaration } from '../types';
+
+// Seed data shaped after recent GSE dividend declarations. The amounts and
+// dates are illustrative — replace with a scrape of GASCI "Notice to
+// Shareholders" pages or a curated feed when one is available.
+const D = (
+  y: number,
+  m: number,
+  d: number,
+) => Date.UTC(y, m - 1, d);
+
+export const DIVIDENDS: DividendDeclaration[] = [
+  // Upcoming (relative to mid-May 2026)
+  {
+    id: 'DIH-2026-INT',
+    symbol: 'DIH',
+    perShare: 3.0,
+    currency: 'GYD',
+    type: 'interim',
+    declaredAt: D(2026, 5, 5),
+    exDate: D(2026, 5, 20),
+    paymentDate: D(2026, 6, 15),
+  },
+  {
+    id: 'DDL-2026-INT',
+    symbol: 'DDL',
+    perShare: 0.3,
+    currency: 'GYD',
+    type: 'interim',
+    declaredAt: D(2026, 5, 8),
+    exDate: D(2026, 5, 28),
+    paymentDate: D(2026, 6, 20),
+  },
+  {
+    id: 'GBTI-2026-FIN',
+    symbol: 'GBTI',
+    perShare: 6.0,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 5, 1),
+    exDate: D(2026, 5, 25),
+    paymentDate: D(2026, 6, 10),
+  },
+  {
+    id: 'RBL-2026-INT',
+    symbol: 'RBL',
+    perShare: 12.0,
+    currency: 'GYD',
+    type: 'interim',
+    declaredAt: D(2026, 5, 12),
+    exDate: D(2026, 6, 5),
+    paymentDate: D(2026, 6, 30),
+  },
+  {
+    id: 'DBL-2026-INT',
+    symbol: 'DBL',
+    perShare: 0.8,
+    currency: 'GYD',
+    type: 'interim',
+    declaredAt: D(2026, 5, 10),
+    exDate: D(2026, 6, 12),
+    paymentDate: D(2026, 7, 5),
+  },
+  {
+    id: 'HIH-2026-INT',
+    symbol: 'HIH',
+    perShare: 0.3,
+    currency: 'GYD',
+    type: 'interim',
+    declaredAt: D(2026, 4, 28),
+    exDate: D(2026, 5, 18),
+    paymentDate: D(2026, 6, 8),
+  },
+  {
+    id: 'CCI-2026-INT',
+    symbol: 'CCI',
+    perShare: 0.75,
+    currency: 'GYD',
+    type: 'interim',
+    declaredAt: D(2026, 5, 6),
+    exDate: D(2026, 6, 1),
+    paymentDate: D(2026, 6, 25),
+  },
+
+  // Recent (already paid)
+  {
+    id: 'DIH-2025-FIN',
+    symbol: 'DIH',
+    perShare: 5.0,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 1, 20),
+    exDate: D(2026, 2, 15),
+    paymentDate: D(2026, 3, 15),
+  },
+  {
+    id: 'DDL-2025-FIN',
+    symbol: 'DDL',
+    perShare: 0.4,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2025, 12, 12),
+    exDate: D(2026, 1, 20),
+    paymentDate: D(2026, 2, 20),
+  },
+  {
+    id: 'DTC-2025-FIN',
+    symbol: 'DTC',
+    perShare: 80.0,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 2, 1),
+    exDate: D(2026, 2, 25),
+    paymentDate: D(2026, 3, 25),
+  },
+  {
+    id: 'RBL-2025-FIN',
+    symbol: 'RBL',
+    perShare: 15.0,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 1, 28),
+    exDate: D(2026, 2, 18),
+    paymentDate: D(2026, 3, 1),
+  },
+  {
+    id: 'SPL-2025-FIN',
+    symbol: 'SPL',
+    perShare: 0.3,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 3, 5),
+    exDate: D(2026, 3, 25),
+    paymentDate: D(2026, 4, 15),
+  },
+  {
+    id: 'TGL-2025-FIN',
+    symbol: 'TGL',
+    perShare: 0.25,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 3, 12),
+    exDate: D(2026, 4, 1),
+    paymentDate: D(2026, 4, 22),
+  },
+  {
+    id: 'DBL-2025-FIN',
+    symbol: 'DBL',
+    perShare: 1.2,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 2, 18),
+    exDate: D(2026, 3, 10),
+    paymentDate: D(2026, 4, 5),
+  },
+  {
+    id: 'HIH-2025-FIN',
+    symbol: 'HIH',
+    perShare: 0.4,
+    currency: 'GYD',
+    type: 'final',
+    declaredAt: D(2026, 1, 15),
+    exDate: D(2026, 2, 5),
+    paymentDate: D(2026, 3, 5),
+  },
+];
+
+export function dividendsForSymbol(symbol: string): DividendDeclaration[] {
+  return DIVIDENDS.filter((d) => d.symbol === symbol).sort(
+    (a, b) => b.exDate - a.exDate,
+  );
+}
