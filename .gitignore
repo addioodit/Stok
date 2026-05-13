@@ -18,10 +18,16 @@ yarn-error.*
 *.mobileprovision
 *.orig.*
 
-# Env / local
+# Env / local — never commit secrets
 .env
 .env.*.local
 .env.local
+
+# EAS build artifacts
+build/
+*.ipa
+*.apk
+*.aab
 
 # Editor
 .vscode/

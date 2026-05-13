@@ -18,8 +18,10 @@ Stok is an Expo (React Native + TypeScript) **order-prep and portfolio app** for
 | Watch tests | `npm test -- --watch` |
 | CI gate locally | `npm run typecheck && npm test -- --ci` |
 | Regenerate brand assets | `python3 scripts/generate-icons.py` (needs Pillow + Liberation Sans Bold) |
+| EAS dev build | `eas build --profile development --platform ios` (or `android` / `all`) |
+| EAS preview / prod build | `eas build --profile preview` / `eas build --profile production` |
 
-CI runs typecheck + tests on every push and PR (`.github/workflows/check.yml`).
+CI runs typecheck + tests on every push and PR (`.github/workflows/check.yml`). EAS / Sentry setup is in `docs/build-and-release.md`.
 
 ## Architecture
 
@@ -52,6 +54,14 @@ Market pull-to-refresh
 **History**: `useHistory.byTicker[symbol]` is the persisted timeseries powering the Stock Detail chart. Two write paths: passive (every `priceFeed.refresh()`) and active (`useHistory.backfill(N)` walks `Session<currentN-1>.htm` … `Session<currentN-N>.htm`). Backfill skips any session that fails to fetch or parse rather than aborting the whole run.
 
 **Orders** (`useOrders`) are an append-only audit log. The OrderTicket actions log every submission: emailing the broker → `'emailed'`, calling → `'called'`, Record fill → `'filled'` plus a `usePortfolio.addLot()` write. The Orders screen ("Activity") lets the user transition pending → filled (which also adds the lot) or cancelled. Treat `createdAt` as immutable; mutate `updatedAt` and `status` only via `setStatus()`.
+
+## Config: app.json vs app.config.js
+
+`app.json` is the static Expo manifest. `app.config.js` wraps it and layers env-driven values on top — currently `extra.sentryDsn`, `extra.eas.projectId`, and (when all Sentry env vars are present) the `@sentry/react-native/expo` plugin. When you add config that varies by environment (DSN-shaped secrets, project IDs, anything from `process.env`), put it in `app.config.js`; when it's a static constant for the app, put it in `app.json`.
+
+## Sentry
+
+`@sentry/react-native` is wired in `App.tsx`. `Sentry.init` is only called when `Constants.expoConfig.extra.sentryDsn` looks like a real DSN (`https://...`), and the default `App` export is only `Sentry.wrap(App)` in that case — so the app continues to run without Sentry compiled in (e.g. Expo Go, no .env.local) and CI tests don't need any Sentry config. The package requires native modules, so the in-app Sentry instrumentation only activates against a development or production build, not Expo Go.
 
 ## Conventions and gotchas
 
