@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePortfolio } from '../store/usePortfolio';
-import { findCompany } from '../data/companies';
+import { useEffectiveCompanies } from '../hooks/useCompanies';
 import { theme } from '../theme';
 import { formatGYD, formatPct, formatQty } from '../utils/format';
 import { TabScreenProps } from '../navigation/types';
@@ -11,11 +11,13 @@ type Props = TabScreenProps<'Portfolio'>;
 
 export function PortfolioScreen({ navigation }: Props) {
   const holdings = usePortfolio((s) => s.holdings);
+  const companies = useEffectiveCompanies();
+  const lastPriceFor = (symbol: string) =>
+    companies.find((c) => c.symbol === symbol)?.lastPrice;
 
   const totals = holdings.reduce(
     (acc, h) => {
-      const company = findCompany(h.symbol);
-      const last = company?.lastPrice ?? h.avgCost;
+      const last = lastPriceFor(h.symbol) ?? h.avgCost;
       acc.cost += h.avgCost * h.quantity;
       acc.value += last * h.quantity;
       return acc;
@@ -54,8 +56,7 @@ export function PortfolioScreen({ navigation }: Props) {
           data={holdings}
           keyExtractor={(h) => h.symbol}
           renderItem={({ item }) => {
-            const company = findCompany(item.symbol);
-            const last = company?.lastPrice ?? item.avgCost;
+            const last = lastPriceFor(item.symbol) ?? item.avgCost;
             const value = last * item.quantity;
             const cost = item.avgCost * item.quantity;
             const itemPl = value - cost;

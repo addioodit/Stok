@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWatchlist } from '../store/useWatchlist';
-import { findCompany } from '../data/companies';
+import { useEffectiveCompanies } from '../hooks/useCompanies';
 import { StockRow } from '../components/StockRow';
 import { theme } from '../theme';
 import { TabScreenProps } from '../navigation/types';
@@ -11,8 +11,9 @@ type Props = TabScreenProps<'Watchlist'>;
 
 export function WatchlistScreen({ navigation }: Props) {
   const symbols = useWatchlist((s) => s.symbols);
+  const all = useEffectiveCompanies();
   const companies = symbols
-    .map((s) => findCompany(s))
+    .map((s) => all.find((c) => c.symbol === s))
     .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
   return (

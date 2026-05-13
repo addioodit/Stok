@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { findCompany } from '../data/companies';
+import { useEffectiveCompany } from '../hooks/useCompanies';
 import { useWatchlist } from '../store/useWatchlist';
 import { usePortfolio } from '../store/usePortfolio';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -12,7 +12,7 @@ type Props = RootStackScreenProps<'StockDetail'>;
 
 export function StockDetailScreen({ route, navigation }: Props) {
   const { symbol } = route.params;
-  const company = findCompany(symbol);
+  const company = useEffectiveCompany(symbol);
   const { isWatched, toggle } = useWatchlist();
   const holding = usePortfolio((s) =>
     s.holdings.find((h) => h.symbol === symbol),

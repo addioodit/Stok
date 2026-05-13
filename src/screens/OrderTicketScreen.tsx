@@ -10,7 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { findCompany } from '../data/companies';
+import { useEffectiveCompany } from '../hooks/useCompanies';
 import { BROKERS, findBroker } from '../data/brokers';
 import { useSettings } from '../store/useSettings';
 import { usePortfolio } from '../store/usePortfolio';
@@ -26,7 +26,7 @@ type Props = RootStackScreenProps<'OrderTicket'>;
 
 export function OrderTicketScreen({ route, navigation }: Props) {
   const { symbol, side: initialSide } = route.params;
-  const company = findCompany(symbol);
+  const company = useEffectiveCompany(symbol);
   const settings = useSettings();
   const addLot = usePortfolio((s) => s.addLot);
 
