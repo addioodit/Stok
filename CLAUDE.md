@@ -1,0 +1,77 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this is
+
+Stok is an Expo (React Native + TypeScript) **order-prep and portfolio app** for the Guyana Stock Exchange (GSE). It does **not** execute trades — GSE has no public retail trading API. The order flow composes an email or phone-call to a licensed broker (Beharry, Hand-in-Hand, GAMBI, TCGL) and lets the user record fills locally once the broker confirms execution. Treat that distinction as the product boundary: anything claiming to "buy" or "sell" must go through the email/phone/record-fill flow.
+
+## Commands
+
+| Task | Command |
+| --- | --- |
+| Run on device (Expo) | `npm start`, then `i` / `a` / `w` |
+| Typecheck | `npm run typecheck` |
+| All tests | `npm test` |
+| Single test file | `npm test -- src/store/usePortfolio.test.ts` |
+| Single test by name | `npm test -- -t "weights the average cost"` |
+| Watch tests | `npm test -- --watch` |
+| CI gate locally | `npm run typecheck && npm test -- --ci` |
+| Regenerate brand assets | `python3 scripts/generate-icons.py` (needs Pillow + Liberation Sans Bold) |
+
+CI runs typecheck + tests on every push and PR (`.github/workflows/check.yml`).
+
+## Architecture
+
+**Navigation** (`src/navigation/RootNavigator.tsx`): a single `NavigationContainer` with a native stack at the root. The stack has the bottom-tab navigator as its first screen plus three pushed routes: `StockDetail`, `OrderTicket` (modal presentation), and `Orders` (Activity log). Tabs: Market, Watchlist, Portfolio, Dividends, Settings. Use `TabScreenProps<'Tab'>` for tab screens (it composites the tab nav and the parent stack so `navigation.navigate('StockDetail', ...)` typechecks).
+
+**State — zustand + AsyncStorage**: every store in `src/store/` uses `persist(createJSONStorage(() => AsyncStorage))`. Stores are independent and only orchestrate each other at well-defined seams:
+
+- `usePriceFeed.refresh()` is the only thing that calls the network. On success it merges new prices over old (preserving unupdated symbols) **and** calls `useHistory.getState().recordReport(...)` to append a snapshot.
+- Components never read raw `priceFeed.prices`; they go through `useEffectiveCompanies` / `useEffectiveCompany` in `src/hooks/useCompanies.ts`, which overlays the live prices on the bundled defaults in `src/data/companies.ts`. This is what guarantees the UI keeps working when the parser only matches some symbols.
+
+**Pricing data flow** is the most important read-path:
+
+```
+Market pull-to-refresh
+  → usePriceFeed.refresh()
+      → fetchLatestReport()            (src/data/marketReport.ts — IO only)
+          → fetchText(ROOT_URLS)       (discovers latest Session<N>.htm)
+          → fetchText(sessionUrl(N))
+          → parseHtmlReport(html)      (src/data/marketReportParser.ts — pure)
+      → merge into prices, set lastUpdated/sessionLabel
+      → useHistory.recordReport(...)   (deduped by ISO day)
+  → useEffectiveCompanies() reads from priceFeed.prices
+  → screens render
+```
+
+**The parser is split deliberately**: `marketReportParser.ts` is pure (no fetch, no zustand) so it can be unit-tested against fixture HTML. `marketReport.ts` only owns the fetch orchestration. When you change parsing logic, update `src/data/__fixtures__/session-sample.html` and the tests in `marketReportParser.test.ts` — don't touch the network code.
+
+**Failure UX**: `usePriceFeed` persists `lastError` + `lastErrorAt` across restarts. `src/utils/errorMessage.ts.classifyFetchError()` maps raw exception messages to a `{ title, body, canRetry }` shape; the Market banner uses that. `canRetry: false` is meaningful — page-format drift and 404s won't fix themselves on retry, so the UI hides the retry button in those cases.
+
+**History**: `useHistory.byTicker[symbol]` is the persisted timeseries powering the Stock Detail chart. Two write paths: passive (every `priceFeed.refresh()`) and active (`useHistory.backfill(N)` walks `Session<currentN-1>.htm` … `Session<currentN-N>.htm`). Backfill skips any session that fails to fetch or parse rather than aborting the whole run.
+
+**Orders** (`useOrders`) are an append-only audit log. The OrderTicket actions log every submission: emailing the broker → `'emailed'`, calling → `'called'`, Record fill → `'filled'` plus a `usePortfolio.addLot()` write. The Orders screen ("Activity") lets the user transition pending → filled (which also adds the lot) or cancelled. Treat `createdAt` as immutable; mutate `updatedAt` and `status` only via `setStatus()`.
+
+## Conventions and gotchas
+
+- **Cost basis only re-weights on buys.** `usePortfolio.addLot(symbol, qty, price)` accepts negative quantities for sells but does **not** shift the avg cost in that case. This was a real bug caught by tests — don't reintroduce it.
+- **Broker emails are intentionally not bundled.** `src/data/brokers.ts` has names, phones, websites only. The user fills broker emails in Settings per-broker; the OrderTicket "Email order" button is disabled until one exists. Do not hard-code broker emails.
+- **GSE company prices and dividend declarations in `src/data/` are seeded, illustrative defaults**, not live data. `companies.ts.COMPANIES` is overridden at runtime by the priceFeed overlay. `dividends.ts.DIVIDENDS` has no overlay yet and is the canonical source for the Dividends screen — needs a real source eventually.
+- **The parser has never been tested against a live GASCI response.** All sandboxes hit by this repo's tooling get 403. The fixture HTML in `src/data/__fixtures__/` is hand-crafted to look like what GASCI likely serves. When the app runs on a real device and refresh fails, capture the actual HTML and replace the fixture; the existing tests will then drive parser updates.
+- **Currency is GYD.** Amounts are stored as plain numbers; formatting (`G$1,234` for ≥100, `G$1.23` for <100) lives in `src/utils/format.ts`. Don't sprinkle ad-hoc formatting in components.
+- **Time-of-day sensitivity**: `useHistory` dedupes points by `new Date(ts).toISOString().slice(0,10)` — multiple refreshes on the same UTC date collapse to one snapshot. Tests that exercise history pass an explicit `now` to keep them deterministic.
+- **Bundle IDs (`gy.stok.app`) and app name (`Stok`) in `app.json` are placeholders** until the real product owner sets them.
+
+## Generated assets
+
+`scripts/generate-icons.py` produces `assets/icon.png`, `assets/adaptive-icon.png` (Android adaptive — transparent foreground, blue bg comes from `app.json`), `assets/splash-icon.png` (transparent foreground, composited on splash backgroundColor), and `assets/favicon.png`. To change colors or the mark, edit the script and re-run rather than editing the PNGs directly.
+
+## Tests worth knowing about
+
+- `src/store/usePortfolio.test.ts` — cost-basis math on every code path
+- `src/store/useOrders.test.ts` — lifecycle + immutability of `createdAt`
+- `src/data/dividends.test.ts` — windowing + expected-income reductions
+- `src/data/marketReportParser.test.ts` — header-aware column matching, blank/zero last-sale skipping, loose-text fallback, session metadata extraction
+- `src/utils/errorMessage.test.ts` — every classifier branch (timeout / no-network / 403 / 404 / 5xx / parser drift / fallback)
+- `src/utils/format.test.ts` — GYD cent-cutoff at 100, signed pct, priceChange div-by-zero
