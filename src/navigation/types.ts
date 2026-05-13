@@ -5,6 +5,7 @@ import {
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { OrderSide } from '../types';
+import { LegalDocId } from '../data/legal';
 
 export type TabsParamList = {
   Market: undefined;
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   StockDetail: { symbol: string };
   OrderTicket: { symbol: string; side: OrderSide };
   Orders: undefined;
+  Legal: { doc: LegalDocId };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

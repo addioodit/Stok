@@ -10,12 +10,25 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../store/useSettings';
+import { useAcceptance } from '../store/useAcceptance';
 import { BROKERS } from '../data/brokers';
+import { ALL_LEGAL, LegalDocId } from '../data/legal';
 import { Field } from '../components/Field';
 import { theme } from '../theme';
+import { formatMediumDate } from '../utils/format';
+import Constants from 'expo-constants';
+import { TabScreenProps } from '../navigation/types';
 
-export function SettingsScreen() {
+type Props = TabScreenProps<'Settings'>;
+
+const LEGAL_DOCS: LegalDocId[] = ['privacy', 'terms', 'disclosure'];
+
+export function SettingsScreen({ navigation }: Props) {
   const settings = useSettings();
+  const acceptedAt = useAcceptance((s) => s.acceptedAt);
+  const acceptedVersion = useAcceptance((s) => s.acceptedVersion);
+  const appVersion =
+    (Constants.expoConfig?.version as string | undefined) ?? '—';
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -100,6 +113,32 @@ export function SettingsScreen() {
             );
           })}
 
+          <Text style={styles.section}>Legal</Text>
+          <View style={styles.legalCard}>
+            {LEGAL_DOCS.map((id, i) => {
+              const doc = ALL_LEGAL[id];
+              return (
+                <Pressable
+                  key={id}
+                  onPress={() => navigation.navigate('Legal', { doc: id })}
+                  style={({ pressed }) => [
+                    styles.legalRow,
+                    i === LEGAL_DOCS.length - 1 && styles.legalRowLast,
+                    pressed && { backgroundColor: theme.colors.surfaceAlt },
+                  ]}
+                >
+                  <Text style={styles.legalRowText}>{doc.title}</Text>
+                  <Text style={styles.legalChevron}>›</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.versionRow}>
+            Version {appVersion} · acceptance v{acceptedVersion ?? '—'}
+            {acceptedAt ? ` · accepted ${formatMediumDate(acceptedAt)}` : ''}
+          </Text>
+
           <Text style={styles.disclaimer}>
             Stok is an order-prep tool. It does not execute trades or move money.
             The Guyana Stock Exchange settles via licensed brokers — orders are
@@ -175,6 +214,38 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   defaultTextOn: { color: theme.colors.textInverse },
+  legalCard: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.bg,
+    overflow: 'hidden',
+  },
+  legalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing(2),
+    paddingVertical: theme.spacing(1.5),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.border,
+  },
+  legalRowLast: { borderBottomWidth: 0 },
+  legalRowText: {
+    flex: 1,
+    fontSize: theme.font.body,
+    color: theme.colors.text,
+    fontWeight: '500',
+  },
+  legalChevron: {
+    fontSize: theme.font.h2,
+    color: theme.colors.textSecondary,
+  },
+  versionRow: {
+    marginTop: theme.spacing(2),
+    fontSize: theme.font.tiny,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+  },
   disclaimer: {
     fontSize: theme.font.tiny,
     color: theme.colors.textSecondary,

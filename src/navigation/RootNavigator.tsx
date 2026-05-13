@@ -11,6 +11,8 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { StockDetailScreen } from '../screens/StockDetailScreen';
 import { OrderTicketScreen } from '../screens/OrderTicketScreen';
 import { OrdersScreen } from '../screens/OrdersScreen';
+import { LegalScreen } from '../screens/LegalScreen';
+import { ALL_LEGAL } from '../data/legal';
 import { RootStackParamList, TabsParamList } from './types';
 import { theme } from '../theme';
 
@@ -123,6 +125,13 @@ export function RootNavigator() {
           name="Orders"
           component={OrdersScreen}
           options={{ title: 'Activity' }}
+        />
+        <RootStack.Screen
+          name="Legal"
+          component={LegalScreen}
+          options={({ route }) => ({
+            title: ALL_LEGAL[route.params.doc].shortTitle,
+          })}
         />
       </RootStack.Navigator>
     </NavigationContainer>
