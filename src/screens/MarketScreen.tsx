@@ -15,13 +15,24 @@ import { TabScreenProps } from '../navigation/types';
 import { useEffectiveCompanies } from '../hooks/useCompanies';
 import { usePriceFeed } from '../store/usePriceFeed';
 import { timeAgo } from '../utils/timeAgo';
+import { classifyFetchError } from '../utils/errorMessage';
 
 type Props = TabScreenProps<'Market'>;
 
 export function MarketScreen({ navigation }: Props) {
   const [query, setQuery] = useState('');
   const companies = useEffectiveCompanies();
-  const { status, error, lastUpdated, sessionLabel, refresh } = usePriceFeed();
+  const {
+    status,
+    lastError,
+    lastErrorAt,
+    lastUpdated,
+    sessionLabel,
+    refresh,
+    dismissError,
+  } = usePriceFeed();
+  const classified = lastError ? classifyFetchError(lastError) : null;
+  const showError = !!classified && status !== 'loading';
 
   useEffect(() => {
     if (lastUpdated === null) {
@@ -59,13 +70,35 @@ export function MarketScreen({ navigation }: Props) {
             </Text>
           )}
         </View>
-        {status === 'error' && error ? (
-          <Pressable onPress={refresh} style={styles.errorBanner}>
-            <Text style={styles.errorText} numberOfLines={2}>
-              {error}
-            </Text>
-            <Text style={styles.errorRetry}>Tap to retry</Text>
-          </Pressable>
+        {showError && classified ? (
+          <View style={styles.errorBanner}>
+            <View style={styles.errorRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.errorTitle}>{classified.title}</Text>
+                <Text style={styles.errorBody} numberOfLines={3}>
+                  {classified.body}
+                </Text>
+                <Text style={styles.errorMeta}>
+                  Failed {lastErrorAt ? timeAgo(lastErrorAt) : 'just now'}
+                  {lastUpdated
+                    ? ` · last good update ${timeAgo(lastUpdated)}`
+                    : ''}
+                </Text>
+              </View>
+              <Pressable
+                onPress={dismissError}
+                hitSlop={8}
+                style={styles.dismissBtn}
+              >
+                <Text style={styles.dismissText}>×</Text>
+              </Pressable>
+            </View>
+            {classified.canRetry ? (
+              <Pressable onPress={refresh} style={styles.retryBtn}>
+                <Text style={styles.retryText}>Tap to retry</Text>
+              </Pressable>
+            ) : null}
+          </View>
         ) : null}
         <TextInput
           value={query}
@@ -140,15 +173,50 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     padding: theme.spacing(1.25),
   },
-  errorText: {
-    fontSize: theme.font.tiny,
+  errorRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  errorTitle: {
+    fontSize: theme.font.small,
+    fontWeight: '700',
     color: theme.colors.negative,
   },
-  errorRetry: {
+  errorBody: {
     fontSize: theme.font.tiny,
     color: theme.colors.negative,
-    fontWeight: '700',
     marginTop: 2,
+    lineHeight: 16,
+  },
+  errorMeta: {
+    fontSize: theme.font.tiny,
+    color: theme.colors.negative,
+    opacity: 0.7,
+    marginTop: 4,
+  },
+  dismissBtn: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+    marginTop: -4,
+  },
+  dismissText: {
+    fontSize: 20,
+    color: theme.colors.negative,
+    lineHeight: 22,
+    fontWeight: '600',
+  },
+  retryBtn: {
+    marginTop: theme.spacing(0.75),
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: theme.spacing(1.25),
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.negative,
+  },
+  retryText: {
+    fontSize: theme.font.tiny,
+    fontWeight: '700',
+    color: theme.colors.textInverse,
   },
   search: {
     marginTop: theme.spacing(1.5),

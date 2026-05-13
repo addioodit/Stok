@@ -9,7 +9,7 @@ interface PriceEntry {
   prev: number;
 }
 
-type Status = 'idle' | 'loading' | 'error';
+type Status = 'idle' | 'loading';
 
 interface PriceFeedState {
   prices: Record<string, PriceEntry>;
@@ -17,8 +17,10 @@ interface PriceFeedState {
   sessionLabel: string | null;
   sourceUrl: string | null;
   status: Status;
-  error: string | null;
+  lastError: string | null;
+  lastErrorAt: number | null;
   refresh: () => Promise<void>;
+  dismissError: () => void;
 }
 
 export const usePriceFeed = create<PriceFeedState>()(
@@ -29,10 +31,11 @@ export const usePriceFeed = create<PriceFeedState>()(
       sessionLabel: null,
       sourceUrl: null,
       status: 'idle',
-      error: null,
+      lastError: null,
+      lastErrorAt: null,
       refresh: async () => {
         if (get().status === 'loading') return;
-        set({ status: 'loading', error: null });
+        set({ status: 'loading' });
         try {
           const report = await fetchLatestReport();
           const previous = get().prices;
@@ -50,7 +53,8 @@ export const usePriceFeed = create<PriceFeedState>()(
             sessionLabel: report.sessionLabel,
             sourceUrl: report.sourceUrl,
             status: 'idle',
-            error: null,
+            lastError: null,
+            lastErrorAt: null,
           });
           useHistory
             .getState()
@@ -61,11 +65,14 @@ export const usePriceFeed = create<PriceFeedState>()(
             );
         } catch (e) {
           set({
-            status: 'error',
-            error: e instanceof Error ? e.message : 'Failed to fetch report',
+            status: 'idle',
+            lastError:
+              e instanceof Error ? e.message : 'Failed to fetch report',
+            lastErrorAt: Date.now(),
           });
         }
       },
+      dismissError: () => set({ lastError: null, lastErrorAt: null }),
     }),
     {
       name: 'stok.priceFeed.v1',
@@ -75,6 +82,8 @@ export const usePriceFeed = create<PriceFeedState>()(
         lastUpdated: s.lastUpdated,
         sessionLabel: s.sessionLabel,
         sourceUrl: s.sourceUrl,
+        lastError: s.lastError,
+        lastErrorAt: s.lastErrorAt,
       }),
     },
   ),
