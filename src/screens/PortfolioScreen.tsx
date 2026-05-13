@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePortfolio } from '../store/usePortfolio';
 import { useEffectiveCompanies } from '../hooks/useCompanies';
+import { isPending, useOrders } from '../store/useOrders';
 import { theme } from '../theme';
 import { formatGYD, formatPct, formatQty } from '../utils/format';
 import { TabScreenProps } from '../navigation/types';
@@ -12,6 +13,9 @@ type Props = TabScreenProps<'Portfolio'>;
 export function PortfolioScreen({ navigation }: Props) {
   const holdings = usePortfolio((s) => s.holdings);
   const companies = useEffectiveCompanies();
+  const orders = useOrders((s) => s.orders);
+  const pendingCount = orders.filter((o) => isPending(o.status)).length;
+  const totalOrders = orders.length;
   const lastPriceFor = (symbol: string) =>
     companies.find((c) => c.symbol === symbol)?.lastPrice;
 
@@ -30,7 +34,22 @@ export function PortfolioScreen({ navigation }: Props) {
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Portfolio</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Portfolio</Text>
+          {totalOrders > 0 ? (
+            <Pressable
+              onPress={() => navigation.navigate('Orders')}
+              style={styles.activityBtn}
+            >
+              <Text style={styles.activityLabel}>Activity</Text>
+              {pendingCount > 0 ? (
+                <View style={styles.activityBadge}>
+                  <Text style={styles.activityBadgeText}>{pendingCount}</Text>
+                </View>
+              ) : null}
+            </Pressable>
+          ) : null}
+        </View>
         <Text style={styles.totalLabel}>Total market value</Text>
         <Text style={styles.total}>{formatGYD(totals.value)}</Text>
         <Text
@@ -106,10 +125,45 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.border,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
+    flex: 1,
     fontSize: theme.font.h1,
     fontWeight: '700',
     color: theme.colors.text,
+  },
+  activityBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing(1.25),
+    paddingVertical: 6,
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bg,
+  },
+  activityLabel: {
+    fontSize: theme.font.tiny,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  activityBadge: {
+    marginLeft: 6,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 5,
+    borderRadius: 9,
+    backgroundColor: theme.colors.warn,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: theme.colors.textInverse,
   },
   totalLabel: {
     marginTop: theme.spacing(1.5),

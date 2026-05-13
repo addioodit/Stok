@@ -10,6 +10,7 @@ import { DividendsScreen } from '../screens/DividendsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { StockDetailScreen } from '../screens/StockDetailScreen';
 import { OrderTicketScreen } from '../screens/OrderTicketScreen';
+import { OrdersScreen } from '../screens/OrdersScreen';
 import { RootStackParamList, TabsParamList } from './types';
 import { theme } from '../theme';
 
@@ -117,6 +118,11 @@ export function RootNavigator() {
             title: `${route.params.side === 'buy' ? 'Buy' : 'Sell'} ${route.params.symbol}`,
             presentation: 'modal',
           })}
+        />
+        <RootStack.Screen
+          name="Orders"
+          component={OrdersScreen}
+          options={{ title: 'Activity' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>

@@ -34,6 +34,7 @@ export interface Holding {
 
 export type OrderSide = 'buy' | 'sell';
 export type OrderType = 'market' | 'limit';
+export type OrderStatus = 'emailed' | 'called' | 'filled' | 'cancelled';
 
 export interface OrderDraft {
   symbol: string;
@@ -43,6 +44,20 @@ export interface OrderDraft {
   limitPrice?: number;
   brokerId: string;
   notes?: string;
+}
+
+export interface Order {
+  id: string;
+  symbol: string;
+  side: OrderSide;
+  type: OrderType;
+  quantity: number;
+  limitPrice?: number;
+  brokerId: string;
+  notes?: string;
+  status: OrderStatus;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface UserSettings {

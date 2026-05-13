@@ -14,6 +14,7 @@ import { useEffectiveCompany } from '../hooks/useCompanies';
 import { BROKERS, findBroker } from '../data/brokers';
 import { useSettings } from '../store/useSettings';
 import { usePortfolio } from '../store/usePortfolio';
+import { useOrders } from '../store/useOrders';
 import { Segmented } from '../components/Segmented';
 import { Field } from '../components/Field';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -29,6 +30,7 @@ export function OrderTicketScreen({ route, navigation }: Props) {
   const company = useEffectiveCompany(symbol);
   const settings = useSettings();
   const addLot = usePortfolio((s) => s.addLot);
+  const logOrder = useOrders((s) => s.add);
 
   const [side, setSide] = useState<OrderSide>(initialSide);
   const [orderType, setOrderType] = useState<OrderType>('limit');
@@ -95,6 +97,16 @@ export function OrderTicketScreen({ route, navigation }: Props) {
     ],
   );
 
+  const orderSnapshot = () => ({
+    symbol,
+    side,
+    type: orderType,
+    quantity: qtyNum,
+    limitPrice: orderType === 'limit' ? priceNum : undefined,
+    brokerId,
+    notes: notes || undefined,
+  });
+
   const sendEmail = async () => {
     if (!brokerEmail) {
       Alert.alert(
@@ -113,6 +125,8 @@ export function OrderTicketScreen({ route, navigation }: Props) {
       return;
     }
     await Linking.openURL(url);
+    logOrder({ ...orderSnapshot(), status: 'emailed' });
+    navigation.goBack();
   };
 
   const callBroker = async () => {
@@ -123,6 +137,10 @@ export function OrderTicketScreen({ route, navigation }: Props) {
       return;
     }
     await Linking.openURL(url);
+    if (qtyNum > 0) {
+      logOrder({ ...orderSnapshot(), status: 'called' });
+      navigation.goBack();
+    }
   };
 
   const recordFill = () => {
@@ -140,6 +158,7 @@ export function OrderTicketScreen({ route, navigation }: Props) {
               side === 'buy' ? qtyNum : -qtyNum,
               priceNum,
             );
+            logOrder({ ...orderSnapshot(), status: 'filled' });
             navigation.goBack();
           },
         },

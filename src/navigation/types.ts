@@ -18,6 +18,7 @@ export type RootStackParamList = {
   Tabs: NavigatorScreenParams<TabsParamList>;
   StockDetail: { symbol: string };
   OrderTicket: { symbol: string; side: OrderSide };
+  Orders: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =
