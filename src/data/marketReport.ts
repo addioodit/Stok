@@ -3,6 +3,8 @@ import { COMPANIES } from './companies';
 
 export interface MarketReport {
   sessionLabel: string | null;
+  sessionTimestamp: number | null;
+  sessionNumber: number | null;
   sourceUrl: string;
   prices: Record<string, { last: number; prev: number }>;
 }
@@ -47,6 +49,13 @@ function parseSessionLabel(html: string): string | null {
     html.match(/Session\s+(\d+)[^A-Z]*([A-Z][a-z]+\s+\d{1,2},?\s*\d{4})/) ||
     html.match(/(Session\s+\d+)/i);
   return m ? m.slice(1).filter(Boolean).join(' — ').trim() : null;
+}
+
+function parseSessionTimestamp(html: string): number | null {
+  const m = html.match(/([A-Z][a-z]+\s+\d{1,2},?\s*\d{4})/);
+  if (!m) return null;
+  const ts = Date.parse(m[1]);
+  return Number.isFinite(ts) ? ts : null;
 }
 
 function stripHtml(s: string): string {
@@ -186,6 +195,29 @@ function parseLoose(
   return out;
 }
 
+function buildReport(
+  html: string,
+  source: string,
+  sessionNumber: number | null,
+): MarketReport {
+  let prices = parseFromTables(html, COMPANIES);
+  if (Object.keys(prices).length === 0) {
+    prices = parseLoose(html, COMPANIES);
+  }
+  if (Object.keys(prices).length === 0) {
+    throw new Error(
+      'Reached the GSE site but could not parse any prices. The page format may have changed.',
+    );
+  }
+  return {
+    sessionLabel: parseSessionLabel(html),
+    sessionTimestamp: parseSessionTimestamp(html),
+    sessionNumber,
+    sourceUrl: source,
+    prices,
+  };
+}
+
 export async function fetchLatestReport(): Promise<MarketReport> {
   let indexHtml = '';
   let usedRoot = ROOT_URLS[0];
@@ -216,20 +248,11 @@ export async function fetchLatestReport(): Promise<MarketReport> {
       // fall back to index page parse
     }
   }
+  return buildReport(html, source, session);
+}
 
-  let prices = parseFromTables(html, COMPANIES);
-  if (Object.keys(prices).length === 0) {
-    prices = parseLoose(html, COMPANIES);
-  }
-  if (Object.keys(prices).length === 0) {
-    throw new Error(
-      'Reached the GSE site but could not parse any prices. The page format may have changed.',
-    );
-  }
-
-  return {
-    sessionLabel: parseSessionLabel(html),
-    sourceUrl: source,
-    prices,
-  };
+export async function fetchReportBySession(n: number): Promise<MarketReport> {
+  const url = sessionUrl(n);
+  const html = await fetchText(url);
+  return buildReport(html, url, n);
 }

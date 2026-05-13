@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetchLatestReport } from '../data/marketReport';
+import { useHistory } from './useHistory';
 
 interface PriceEntry {
   last: number;
@@ -51,6 +52,13 @@ export const usePriceFeed = create<PriceFeedState>()(
             status: 'idle',
             error: null,
           });
+          useHistory
+            .getState()
+            .recordReport(
+              report.prices,
+              report.sessionLabel,
+              report.sessionTimestamp ?? Date.now(),
+            );
         } catch (e) {
           set({
             status: 'error',
