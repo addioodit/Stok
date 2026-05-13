@@ -2,6 +2,7 @@ import { COMPANIES } from './companies';
 import {
   discoverLatestSession,
   parseHtmlReport,
+  ParsedReport,
 } from './marketReportParser';
 
 export interface MarketReport {
@@ -10,6 +11,18 @@ export interface MarketReport {
   sessionNumber: number | null;
   sourceUrl: string;
   prices: Record<string, { last: number; prev: number }>;
+}
+
+export interface RawAndParsed {
+  html: string;
+  sourceUrl: string;
+  parsed: ParsedReport;
+  /**
+   * The session number used in the URL (e.g. 838 for Session838.htm).
+   * May differ from parsed.sessionNumber, which is the highest number
+   * referenced anywhere on the page.
+   */
+  sessionNumberRequested: number | null;
 }
 
 const ROOT_URLS = [
@@ -93,4 +106,66 @@ export async function fetchReportBySession(n: number): Promise<MarketReport> {
   const url = sessionUrl(n);
   const html = await fetchText(url);
   return buildReport(html, url, n);
+}
+
+/**
+ * Debug-only: fetch the latest session page (or a specific one) and return
+ * BOTH the raw HTML and the parsed result. Never throws on parse failure —
+ * always returns the raw HTML so the user can capture and inspect it. The
+ * fetch itself can still throw on network/HTTP errors.
+ */
+export async function fetchRawAndParse(
+  opts: { sessionNumber?: number } = {},
+): Promise<RawAndParsed> {
+  let html = '';
+  let source = '';
+  let sessionNumberRequested: number | null = null;
+
+  if (opts.sessionNumber != null) {
+    source = sessionUrl(opts.sessionNumber);
+    html = await fetchText(source);
+    sessionNumberRequested = opts.sessionNumber;
+  } else {
+    // Discover the latest session via the trades index.
+    let indexHtml = '';
+    let usedRoot = ROOT_URLS[0];
+    let lastErr: unknown = null;
+    for (const url of ROOT_URLS) {
+      try {
+        indexHtml = await fetchText(url);
+        usedRoot = url;
+        break;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    if (!indexHtml) {
+      throw new Error(
+        `Could not reach GSE: ${
+          lastErr instanceof Error ? lastErr.message : 'network error'
+        }`,
+      );
+    }
+    const n = discoverLatestSession(indexHtml);
+    if (n) {
+      try {
+        html = await fetchText(sessionUrl(n));
+        source = sessionUrl(n);
+        sessionNumberRequested = n;
+      } catch {
+        html = indexHtml;
+        source = usedRoot;
+      }
+    } else {
+      html = indexHtml;
+      source = usedRoot;
+    }
+  }
+
+  return {
+    html,
+    sourceUrl: source,
+    sessionNumberRequested,
+    parsed: parseHtmlReport(html, COMPANIES),
+  };
 }

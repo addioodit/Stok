@@ -6,6 +6,7 @@ export interface ParsedReport {
   sessionLabel: string | null;
   sessionTimestamp: number | null;
   sessionNumber: number | null;
+  strategy: 'tables' | 'loose' | 'none';
 }
 
 export function discoverLatestSession(html: string): number | null {
@@ -183,13 +184,95 @@ export function parseHtmlReport(
   companies: Company[] = COMPANIES,
 ): ParsedReport {
   let prices = parseFromTables(html, companies);
+  let strategy: 'tables' | 'loose' | 'none' = 'tables';
   if (Object.keys(prices).length === 0) {
     prices = parseLoose(html, companies);
+    strategy = 'loose';
+  }
+  if (Object.keys(prices).length === 0) {
+    strategy = 'none';
   }
   return {
     prices,
     sessionLabel: parseSessionLabel(html),
     sessionTimestamp: parseSessionTimestamp(html),
     sessionNumber: discoverLatestSession(html),
+    strategy,
   };
+}
+
+export interface TableSummary {
+  headers: string[];
+  rowCount: number;
+  securityCol: number;
+  lastCol: number;
+  prevCol: number;
+}
+
+export function summarizeTables(html: string): TableSummary[] {
+  return parseTables(html).map((rows) => {
+    const headers = rows[0] ?? [];
+    return {
+      headers,
+      rowCount: Math.max(0, rows.length - 1),
+      securityCol: findCol(headers, [
+        'security',
+        'symbol',
+        'name',
+        'stock',
+      ]),
+      lastCol: findCol(headers, [
+        'lastsale',
+        'closing',
+        'close',
+        'last',
+        'price',
+      ]),
+      prevCol: findCol(headers, [
+        'previous',
+        'prevclose',
+        'opening',
+        'open',
+      ]),
+    };
+  });
+}
+
+export type SymbolStatus = 'parsed' | 'in-text-not-parsed' | 'not-in-text';
+
+export interface SymbolDiagnostic {
+  symbol: string;
+  name: string;
+  status: SymbolStatus;
+  last?: number;
+  prev?: number;
+}
+
+export function diagnoseSymbols(
+  html: string,
+  parsed: ParsedReport,
+  companies: Company[] = COMPANIES,
+): SymbolDiagnostic[] {
+  const text = stripHtml(html).toUpperCase();
+  return companies.map((c) => {
+    const hit = parsed.prices[c.symbol];
+    if (hit) {
+      return {
+        symbol: c.symbol,
+        name: c.name,
+        status: 'parsed',
+        last: hit.last,
+        prev: hit.prev,
+      };
+    }
+    const first = c.name.split(/\s+/)[0].toUpperCase();
+    const inText =
+      new RegExp(`\\b${escapeRegex(c.symbol)}\\b`).test(text) ||
+      (first.length >= 4 && text.includes(first));
+    return {
+      symbol: c.symbol,
+      name: c.name,
+      status: inText ? 'in-text-not-parsed' : 'not-in-text',
+    };
+  });
 }

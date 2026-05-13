@@ -21,6 +21,7 @@ export type RootStackParamList = {
   OrderTicket: { symbol: string; side: OrderSide };
   Orders: undefined;
   Legal: { doc: LegalDocId };
+  DebugParser: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

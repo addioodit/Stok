@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  diagnoseSymbols,
   discoverLatestSession,
   parseFromTables,
   parseHtmlReport,
@@ -8,6 +9,7 @@ import {
   parseSessionLabel,
   parseSessionTimestamp,
   parseTables,
+  summarizeTables,
 } from './marketReportParser';
 import { COMPANIES } from './companies';
 
@@ -130,16 +132,65 @@ describe('parseHtmlReport', () => {
     expect(report.sessionLabel).toMatch(/837/);
     expect(report.sessionTimestamp).not.toBeNull();
     expect(report.sessionNumber).toBe(838); // highest referenced
+    expect(report.strategy).toBe('tables');
   });
 
   it('falls through to parseLoose when no table works', () => {
     const html = '<p>BANKS DIH (DIH) traded at 217</p>';
     const report = parseHtmlReport(html, COMPANIES);
     expect(report.prices.DIH.last).toBe(217);
+    expect(report.strategy).toBe('loose');
   });
 
-  it('returns an empty prices map when nothing matches (caller decides whether to throw)', () => {
+  it('returns an empty prices map and strategy "none" when nothing matches', () => {
     const report = parseHtmlReport('<p>no symbols mentioned</p>', COMPANIES);
     expect(report.prices).toEqual({});
+    expect(report.strategy).toBe('none');
+  });
+});
+
+describe('summarizeTables', () => {
+  it('exposes header text and the parser column matches for each table', () => {
+    const [t] = summarizeTables(fixture);
+    expect(t.headers).toContain('Last Sale');
+    expect(t.headers).toContain('Previous Close');
+    expect(t.rowCount).toBeGreaterThan(0);
+    expect(t.securityCol).toBe(0);
+    expect(t.lastCol).toBeGreaterThan(0);
+    expect(t.prevCol).toBeGreaterThan(0);
+  });
+
+  it('returns -1 columns when headers do not match any alias', () => {
+    const html =
+      '<table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2</td></tr></table>';
+    const [t] = summarizeTables(html);
+    expect(t.securityCol).toBe(-1);
+    expect(t.lastCol).toBe(-1);
+    expect(t.prevCol).toBe(-1);
+  });
+});
+
+describe('diagnoseSymbols', () => {
+  it('marks parsed symbols as parsed and includes prices', () => {
+    const report = parseHtmlReport(fixture, COMPANIES);
+    const diag = diagnoseSymbols(fixture, report, COMPANIES);
+    const dih = diag.find((d) => d.symbol === 'DIH');
+    expect(dih?.status).toBe('parsed');
+    expect(dih?.last).toBe(215);
+  });
+
+  it('marks HIH as in-text-not-parsed (blank last-sale cell in fixture)', () => {
+    const report = parseHtmlReport(fixture, COMPANIES);
+    const diag = diagnoseSymbols(fixture, report, COMPANIES);
+    expect(diag.find((d) => d.symbol === 'HIH')?.status).toBe(
+      'in-text-not-parsed',
+    );
+  });
+
+  it('marks symbols not referenced anywhere on the page as not-in-text', () => {
+    const report = parseHtmlReport(fixture, COMPANIES);
+    const diag = diagnoseSymbols(fixture, report, COMPANIES);
+    // PHI is in COMPANIES but not in the fixture HTML
+    expect(diag.find((d) => d.symbol === 'PHI')?.status).toBe('not-in-text');
   });
 });

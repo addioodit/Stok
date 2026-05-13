@@ -134,6 +134,26 @@ export function SettingsScreen({ navigation }: Props) {
             })}
           </View>
 
+          <Text style={styles.section}>Developer</Text>
+          <View style={styles.legalCard}>
+            <Pressable
+              onPress={() => navigation.navigate('DebugParser')}
+              style={({ pressed }) => [
+                styles.legalRow,
+                styles.legalRowLast,
+                pressed && { backgroundColor: theme.colors.surfaceAlt },
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.legalRowText}>Parser debug</Text>
+                <Text style={styles.devHint}>
+                  Fetch GASCI live · inspect raw HTML · share captured page
+                </Text>
+              </View>
+              <Text style={styles.legalChevron}>›</Text>
+            </Pressable>
+          </View>
+
           <Text style={styles.versionRow}>
             Version {appVersion} · acceptance v{acceptedVersion ?? '—'}
             {acceptedAt ? ` · accepted ${formatMediumDate(acceptedAt)}` : ''}
@@ -239,6 +259,11 @@ const styles = StyleSheet.create({
   legalChevron: {
     fontSize: theme.font.h2,
     color: theme.colors.textSecondary,
+  },
+  devHint: {
+    fontSize: theme.font.tiny,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
   },
   versionRow: {
     marginTop: theme.spacing(2),

@@ -12,6 +12,7 @@ import { StockDetailScreen } from '../screens/StockDetailScreen';
 import { OrderTicketScreen } from '../screens/OrderTicketScreen';
 import { OrdersScreen } from '../screens/OrdersScreen';
 import { LegalScreen } from '../screens/LegalScreen';
+import { DebugParserScreen } from '../screens/DebugParserScreen';
 import { ALL_LEGAL } from '../data/legal';
 import { RootStackParamList, TabsParamList } from './types';
 import { theme } from '../theme';
@@ -132,6 +133,11 @@ export function RootNavigator() {
           options={({ route }) => ({
             title: ALL_LEGAL[route.params.doc].shortTitle,
           })}
+        />
+        <RootStack.Screen
+          name="DebugParser"
+          component={DebugParserScreen}
+          options={{ title: 'Parser debug' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>
