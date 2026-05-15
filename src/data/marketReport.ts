@@ -1,4 +1,5 @@
 import { COMPANIES } from './companies';
+import { fetchText } from '../utils/fetchText';
 import {
   discoverLatestSession,
   parseHtmlReport,
@@ -33,21 +34,6 @@ const ROOT_URLS = [
 
 const sessionUrl = (n: number) =>
   `https://www.gasci.com/results/Session${n}.htm`;
-
-async function fetchText(url: string, timeoutMs = 15000): Promise<string> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { Accept: 'text/html,application/xhtml+xml' },
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status} from ${url}`);
-    return await res.text();
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 function buildReport(
   html: string,

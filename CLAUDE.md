@@ -25,7 +25,9 @@ CI runs typecheck + tests on every push and PR (`.github/workflows/check.yml`). 
 
 ## Architecture
 
-**Navigation** (`src/navigation/RootNavigator.tsx`): a single `NavigationContainer` with a native stack at the root. The stack has the bottom-tab navigator as its first screen plus three pushed routes: `StockDetail`, `OrderTicket` (modal presentation), and `Orders` (Activity log). Tabs: Market, Watchlist, Portfolio, Dividends, Settings. Use `TabScreenProps<'Tab'>` for tab screens (it composites the tab nav and the parent stack so `navigation.navigate('StockDetail', ...)` typechecks).
+**App gate** (`App.tsx`): before the navigator renders, the app walks an onboarding gate — blank (while `useAcceptance` + `useProfile` rehydrate) → `AcceptScreen` (legal acceptance) → `ProfileSetupScreen` (username) → `RootNavigator`. Each gate store exposes a `hasHydrated` flag so there's no flash of an onboarding screen for an already-onboarded user.
+
+**Navigation** (`src/navigation/RootNavigator.tsx`): a single `NavigationContainer` with a native stack at the root. The stack has the bottom-tab navigator as its first screen plus pushed routes: `StockDetail`, `OrderTicket` (modal), `Orders` (Activity log), `Legal`, and `DebugParser`. Tabs: Market, Watchlist, Portfolio, Dividends, News, Settings. Use `TabScreenProps<'Tab'>` for tab screens (it composites the tab nav and the parent stack so `navigation.navigate('StockDetail', ...)` typechecks).
 
 **State — zustand + AsyncStorage**: every store in `src/store/` uses `persist(createJSONStorage(() => AsyncStorage))`. Stores are independent and only orchestrate each other at well-defined seams:
 
@@ -48,6 +50,8 @@ Market pull-to-refresh
 ```
 
 **The parser is split deliberately**: `marketReportParser.ts` is pure (no fetch, no zustand) so it can be unit-tested against fixture HTML. `marketReport.ts` only owns the fetch orchestration. When you change parsing logic, update `src/data/__fixtures__/session-sample.html` and the tests in `marketReportParser.test.ts` — don't touch the network code.
+
+**News** follows the exact same split: `newsParser.ts` is pure (RSS 2.0 + Atom → `NewsItem[]`, tested against `__fixtures__/rss-sample.xml` and `atom-sample.xml`), `news.ts` owns the parallel fetch (`Promise.allSettled` over `NEWS_SOURCES`; a feed that fails is skipped and named in `errors`, never fatal), and `useNews` is the store powering the News tab. Both the GASCI scraper and the news reader share `src/utils/fetchText.ts`.
 
 **Failure UX**: `usePriceFeed` persists `lastError` + `lastErrorAt` across restarts. `src/utils/errorMessage.ts.classifyFetchError()` maps raw exception messages to a `{ title, body, canRetry }` shape; the Market banner uses that. `canRetry: false` is meaningful — page-format drift and 404s won't fix themselves on retry, so the UI hides the retry button in those cases.
 
@@ -72,6 +76,8 @@ Market pull-to-refresh
 - **Currency is GYD.** Amounts are stored as plain numbers; formatting (`G$1,234` for ≥100, `G$1.23` for <100) lives in `src/utils/format.ts`. Don't sprinkle ad-hoc formatting in components.
 - **Time-of-day sensitivity**: `useHistory` dedupes points by `new Date(ts).toISOString().slice(0,10)` — multiple refreshes on the same UTC date collapse to one snapshot. Tests that exercise history pass an explicit `now` to keep them deterministic.
 - **Bundle IDs (`gy.stok.app`) and app name (`Stok`) in `app.json` are placeholders** until the real product owner sets them.
+- **News feed URLs in `src/data/newsSources.ts` are unverified** (same sandbox 403 as GASCI). On a real device a feed that 404s or changes format is skipped, not fatal — `useNews.failedSources` lists the misses. Adjust feed URLs there as needed.
+- **There is no backend.** `useProfile` (username, display name) is local-only — it's the identity foundation for future community features, but Stok has no accounts, server, or sync. Anything genuinely "social" (a feed of other users, following, sharing) needs a backend that does not exist yet; don't scaffold fake versions of it.
 
 ## Generated assets
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Loop Caribbean</title>
+  <link href="https://www.loopnews.com" rel="alternate"/>
+  <updated>2026-05-12T10:00:00Z</updated>
+  <entry>
+    <title>Caribbean markets watch Guyana oil revenue</title>
+    <link href="https://www.loopnews.com/self" rel="self"/>
+    <link href="https://www.loopnews.com/content/guyana-oil" rel="alternate"/>
+    <id>tag:loopnews.com,2026:/content/guyana-oil</id>
+    <published>2026-05-12T08:15:00Z</published>
+    <summary>Regional analysts weigh in on Guyana's growth.</summary>
+  </entry>
+  <entry>
+    <title>Trinidad &amp; Tobago budget preview</title>
+    <link href="https://www.loopnews.com/content/tt-budget"/>
+    <id>tag:loopnews.com,2026:/content/tt-budget</id>
+    <updated>2026-05-11T19:00:00Z</updated>
+    <content>Budget season approaches.</content>
+  </entry>
+</feed>
