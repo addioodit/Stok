@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,11 +11,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../store/useSettings';
 import { useAcceptance } from '../store/useAcceptance';
+import { useProfile } from '../store/useProfile';
 import { BROKERS } from '../data/brokers';
 import { ALL_LEGAL, LegalDocId } from '../data/legal';
 import { Field } from '../components/Field';
+import { Avatar } from '../components/Avatar';
+import { PrimaryButton } from '../components/PrimaryButton';
 import { theme } from '../theme';
 import { formatMediumDate } from '../utils/format';
+import { validateUsername } from '../utils/username';
 import Constants from 'expo-constants';
 import { TabScreenProps } from '../navigation/types';
 
@@ -27,8 +31,14 @@ export function SettingsScreen({ navigation }: Props) {
   const settings = useSettings();
   const acceptedAt = useAcceptance((s) => s.acceptedAt);
   const acceptedVersion = useAcceptance((s) => s.acceptedVersion);
+  const profile = useProfile();
   const appVersion =
     (Constants.expoConfig?.version as string | undefined) ?? '—';
+
+  const [usernameDraft, setUsernameDraft] = useState(profile.username ?? '');
+  const usernameCheck = validateUsername(usernameDraft);
+  const usernameChanged = usernameDraft.trim() !== (profile.username ?? '');
+  const canSaveUsername = usernameCheck.ok && usernameChanged;
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -41,6 +51,49 @@ export function SettingsScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>Settings</Text>
+
+          <Text style={styles.section}>Profile</Text>
+          <View style={styles.profileCard}>
+            <View style={styles.profileHeader}>
+              <Avatar name={profile.username ?? '?'} size={56} />
+              <View style={styles.profileMeta}>
+                <Text style={styles.profileHandle}>
+                  @{profile.username ?? 'unknown'}
+                </Text>
+                {profile.joinedAt ? (
+                  <Text style={styles.profileJoined}>
+                    Joined {formatMediumDate(profile.joinedAt)}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+            <View style={{ height: theme.spacing(1.5) }} />
+            <Field
+              label="Display name"
+              value={profile.displayName}
+              onChangeText={(v) => profile.updateDisplayName(v)}
+              placeholder="How your name shows up"
+              autoCapitalize="words"
+            />
+            <Field
+              label="Username"
+              value={usernameDraft}
+              onChangeText={setUsernameDraft}
+              placeholder="your_handle"
+              autoCapitalize="none"
+              hint={
+                usernameDraft.trim().length > 0 && !usernameCheck.ok
+                  ? usernameCheck.error
+                  : '3–20 characters · letters, numbers, underscore'
+              }
+            />
+            <PrimaryButton
+              label="Save username"
+              variant="secondary"
+              onPress={() => profile.changeUsername(usernameDraft)}
+              disabled={!canSaveUsername}
+            />
+          </View>
 
           <Text style={styles.section}>Your details</Text>
           <Field
@@ -172,6 +225,32 @@ export function SettingsScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.bg },
+  profileCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing(2),
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    marginBottom: theme.spacing(1),
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileMeta: {
+    marginLeft: theme.spacing(1.5),
+    flex: 1,
+  },
+  profileHandle: {
+    fontSize: theme.font.h2,
+    fontWeight: '700',
+    color: theme.colors.text,
+  },
+  profileJoined: {
+    fontSize: theme.font.tiny,
+    color: theme.colors.textSecondary,
+    marginTop: 2,
+  },
   title: {
     fontSize: theme.font.h1,
     fontWeight: '700',

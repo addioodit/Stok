@@ -6,7 +6,9 @@ import Constants from 'expo-constants';
 import * as Sentry from '@sentry/react-native';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AcceptScreen } from './src/screens/AcceptScreen';
+import { ProfileSetupScreen } from './src/screens/ProfileSetupScreen';
 import { isAccepted, useAcceptance } from './src/store/useAcceptance';
+import { useProfile } from './src/store/useProfile';
 import { theme } from './src/theme';
 
 const sentryDsn = Constants.expoConfig?.extra?.sentryDsn as
@@ -27,18 +29,24 @@ if (sentryEnabled) {
 }
 
 function App() {
-  const hasHydrated = useAcceptance((s) => s.hasHydrated);
+  const acceptanceHydrated = useAcceptance((s) => s.hasHydrated);
+  const profileHydrated = useProfile((s) => s.hasHydrated);
   const accepted = useAcceptance(isAccepted);
+  const username = useProfile((s) => s.username);
+
+  const ready = acceptanceHydrated && profileHydrated;
 
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      {!hasHydrated ? (
+      {!ready ? (
         <View style={{ flex: 1, backgroundColor: theme.colors.bg }} />
-      ) : accepted ? (
-        <RootNavigator />
-      ) : (
+      ) : !accepted ? (
         <AcceptScreen />
+      ) : !username ? (
+        <ProfileSetupScreen />
+      ) : (
+        <RootNavigator />
       )}
     </SafeAreaProvider>
   );
