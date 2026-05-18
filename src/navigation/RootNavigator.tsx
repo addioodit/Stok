@@ -14,6 +14,7 @@ import { OrderTicketScreen } from '../screens/OrderTicketScreen';
 import { OrdersScreen } from '../screens/OrdersScreen';
 import { LegalScreen } from '../screens/LegalScreen';
 import { DebugParserScreen } from '../screens/DebugParserScreen';
+import { BackupScreen } from '../screens/BackupScreen';
 import { ALL_LEGAL } from '../data/legal';
 import { RootStackParamList, TabsParamList } from './types';
 import { theme } from '../theme';
@@ -148,6 +149,11 @@ export function RootNavigator() {
           name="DebugParser"
           component={DebugParserScreen}
           options={{ title: 'Parser debug' }}
+        />
+        <RootStack.Screen
+          name="Backup"
+          component={BackupScreen}
+          options={{ title: 'Backup & restore' }}
         />
       </RootStack.Navigator>
     </NavigationContainer>

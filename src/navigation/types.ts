@@ -23,6 +23,7 @@ export type RootStackParamList = {
   Orders: undefined;
   Legal: { doc: LegalDocId };
   DebugParser: undefined;
+  Backup: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

@@ -78,6 +78,7 @@ Market pull-to-refresh
 - **Bundle IDs (`gy.stok.app`) and app name (`Stok`) in `app.json` are placeholders** until the real product owner sets them.
 - **News feed URLs in `src/data/newsSources.ts` are unverified** (same sandbox 403 as GASCI). On a real device a feed that 404s or changes format is skipped, not fatal — `useNews.failedSources` lists the misses. Adjust feed URLs there as needed.
 - **There is no backend.** `useProfile` (username, display name) is local-only — it's the identity foundation for future community features, but Stok has no accounts, server, or sync. Anything genuinely "social" (a feed of other users, following, sharing) needs a backend that does not exist yet; don't scaffold fake versions of it.
+- **Backup is the only sync story.** `src/data/backup.ts` snapshots the seven user-data stores (portfolio, watchlist, settings, orders, history, dividends-received, profile) into a versioned JSON file; `backupIo.ts` does the file IO (`expo-file-system` + `expo-sharing` + `expo-document-picker`). It deliberately omits `usePriceFeed`/`useNews` (caches, re-fetched) and `useAcceptance` (device/version specific). `applyBackup` is per-section defensive — a malformed section is skipped, never fatal. Bump `BACKUP_VERSION` when `BackupData` changes shape.
 
 ## Generated assets
 

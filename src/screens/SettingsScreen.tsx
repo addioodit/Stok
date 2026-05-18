@@ -166,6 +166,26 @@ export function SettingsScreen({ navigation }: Props) {
             );
           })}
 
+          <Text style={styles.section}>Data</Text>
+          <View style={styles.legalCard}>
+            <Pressable
+              onPress={() => navigation.navigate('Backup')}
+              style={({ pressed }) => [
+                styles.legalRow,
+                styles.legalRowLast,
+                pressed && { backgroundColor: theme.colors.surfaceAlt },
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.legalRowText}>Backup &amp; restore</Text>
+                <Text style={styles.devHint}>
+                  Export your data as a file · restore on a new device
+                </Text>
+              </View>
+              <Text style={styles.legalChevron}>›</Text>
+            </Pressable>
+          </View>
+
           <Text style={styles.section}>Legal</Text>
           <View style={styles.legalCard}>
             {LEGAL_DOCS.map((id, i) => {
