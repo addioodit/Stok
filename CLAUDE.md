@@ -25,7 +25,7 @@ CI runs typecheck + tests on every push and PR (`.github/workflows/check.yml`). 
 
 ## Architecture
 
-**App gate** (`App.tsx`): before the navigator renders, the app walks an onboarding gate — blank (while `useAcceptance` + `useProfile` rehydrate) → `AcceptScreen` (legal acceptance) → `ProfileSetupScreen` (username) → `RootNavigator`. Each gate store exposes a `hasHydrated` flag so there's no flash of an onboarding screen for an already-onboarded user.
+**App gate** (`App.tsx`): before the navigator renders, the app walks an onboarding gate — blank (while `useAcceptance` + `useProfile` + `useOnboarding` rehydrate) → `AcceptScreen` (legal acceptance) → `ProfileSetupScreen` (username) → `OnboardingScreen` (3-page tour) → `RootNavigator`. Each gate store exposes a `hasHydrated` flag so there's no flash of an onboarding screen for an already-onboarded user. The tour is replayable from Settings → Help → Replay intro (`useOnboarding.resetSeen()`).
 
 **Navigation** (`src/navigation/RootNavigator.tsx`): a single `NavigationContainer` with a native stack at the root. The stack has the bottom-tab navigator as its first screen plus pushed routes: `StockDetail`, `OrderTicket` (modal), `Orders` (Activity log), `Legal`, and `DebugParser`. Tabs: Market, Watchlist, Portfolio, Dividends, News, Settings. Use `TabScreenProps<'Tab'>` for tab screens (it composites the tab nav and the parent stack so `navigation.navigate('StockDetail', ...)` typechecks).
 

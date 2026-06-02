@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../store/useSettings';
 import { useAcceptance } from '../store/useAcceptance';
 import { useProfile } from '../store/useProfile';
+import { useOnboarding } from '../store/useOnboarding';
 import { BROKERS } from '../data/brokers';
 import { ALL_LEGAL, LegalDocId } from '../data/legal';
 import { Field } from '../components/Field';
@@ -168,6 +169,35 @@ export function SettingsScreen({ navigation }: Props) {
               </View>
             );
           })}
+
+          <Text style={styles.section}>Help</Text>
+          <View style={styles.legalCard}>
+            <Pressable
+              onPress={() => useOnboarding.getState().resetSeen()}
+              accessibilityRole="button"
+              accessibilityLabel="Replay introduction"
+              accessibilityHint="Show the first-launch tour again"
+              style={({ pressed }) => [
+                styles.legalRow,
+                styles.legalRowLast,
+                pressed && { backgroundColor: theme.colors.surfaceAlt },
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.legalRowText}>Replay intro</Text>
+                <Text style={styles.devHint}>
+                  Re-show the three-page tour that explains the order flow
+                </Text>
+              </View>
+              <Text
+                style={styles.legalChevron}
+                accessibilityElementsHidden
+                importantForAccessibility="no"
+              >
+                ›
+              </Text>
+            </Pressable>
+          </View>
 
           <Text style={styles.section}>Data</Text>
           <View style={styles.legalCard}>
