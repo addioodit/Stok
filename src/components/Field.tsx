@@ -40,6 +40,8 @@ export function Field({
         autoCapitalize={autoCapitalize}
         multiline={multiline}
         placeholderTextColor={theme.colors.textSecondary}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         style={[styles.input, multiline && styles.multiline]}
       />
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}

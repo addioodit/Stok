@@ -63,6 +63,9 @@ export function AcceptScreen() {
               <Pressable
                 key={id}
                 onPress={() => setOpen(id)}
+                accessibilityRole="button"
+                accessibilityLabel={`${doc.title}${read ? ', already read' : ''}`}
+                accessibilityHint={read ? 'Tap to view again' : 'Tap to read'}
                 style={({ pressed }) => [
                   styles.docRow,
                   pressed && { backgroundColor: theme.colors.surfaceAlt },
@@ -74,7 +77,11 @@ export function AcceptScreen() {
                     {read ? 'Read · tap to view again' : 'Tap to read'}
                   </Text>
                 </View>
-                <Text style={[styles.docCheck, read && styles.docCheckOn]}>
+                <Text
+                  style={[styles.docCheck, read && styles.docCheckOn]}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                >
                   {read ? '✓' : '›'}
                 </Text>
               </Pressable>
@@ -84,6 +91,9 @@ export function AcceptScreen() {
 
         <Pressable
           onPress={() => setAgreed((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityLabel="I agree to the Privacy Policy, Terms of Use, and Important Disclosure"
+          accessibilityState={{ checked: agreed }}
           style={styles.agreeRow}
         >
           <View style={[styles.checkbox, agreed && styles.checkboxOn]}>
@@ -117,7 +127,12 @@ export function AcceptScreen() {
       >
         <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: theme.colors.bg }}>
           <View style={styles.modalHeader}>
-            <Pressable onPress={closeDoc} hitSlop={8}>
+            <Pressable
+              onPress={closeDoc}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Close document"
+            >
               <Text style={styles.modalDone}>Done</Text>
             </Pressable>
           </View>

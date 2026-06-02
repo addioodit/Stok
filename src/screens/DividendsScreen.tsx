@@ -143,7 +143,15 @@ function DividendRow({
   const days = daysUntil(d.paymentDate);
   return (
     <View style={styles.row}>
-      <Pressable onPress={onOpen} style={styles.rowMain}>
+      <Pressable
+        onPress={onOpen}
+        accessibilityRole="button"
+        accessibilityLabel={`${d.symbol}, ${formatGYD(d.perShare)} per share${
+          quantity > 0 ? `, expected ${formatGYD(expected)}` : ''
+        }`}
+        accessibilityHint="Opens stock details"
+        style={styles.rowMain}
+      >
         <View style={styles.pill}>
           <Text style={styles.pillText}>{d.symbol}</Text>
         </View>
@@ -179,6 +187,10 @@ function DividendRow({
       {variant === 'recent' && onToggleReceived ? (
         <Pressable
           onPress={onToggleReceived}
+          accessibilityRole="checkbox"
+          accessibilityLabel={`Mark ${d.symbol} dividend received`}
+          accessibilityState={{ checked: !!received }}
+          hitSlop={6}
           style={[
             styles.checkBtn,
             received && styles.checkBtnOn,

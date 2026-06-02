@@ -88,13 +88,20 @@ export function MarketScreen({ navigation }: Props) {
               <Pressable
                 onPress={dismissError}
                 hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss error"
                 style={styles.dismissBtn}
               >
                 <Text style={styles.dismissText}>×</Text>
               </Pressable>
             </View>
             {classified.canRetry ? (
-              <Pressable onPress={refresh} style={styles.retryBtn}>
+              <Pressable
+                onPress={refresh}
+                accessibilityRole="button"
+                accessibilityLabel="Retry fetching prices"
+                style={styles.retryBtn}
+              >
                 <Text style={styles.retryText}>Tap to retry</Text>
               </Pressable>
             ) : null}

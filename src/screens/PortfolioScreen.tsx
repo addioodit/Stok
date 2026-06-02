@@ -40,6 +40,13 @@ export function PortfolioScreen({ navigation }: Props) {
           {totalOrders > 0 ? (
             <Pressable
               onPress={() => navigation.navigate('Orders')}
+              accessibilityRole="button"
+              accessibilityLabel={
+                pendingCount > 0
+                  ? `Activity, ${pendingCount} pending`
+                  : 'Activity'
+              }
+              hitSlop={8}
               style={styles.activityBtn}
             >
               <Text style={styles.activityLabel}>Activity</Text>
@@ -81,11 +88,15 @@ export function PortfolioScreen({ navigation }: Props) {
             const value = last * item.quantity;
             const cost = item.avgCost * item.quantity;
             const itemPl = value - cost;
+            const plDirection = itemPl >= 0 ? 'up' : 'down';
             return (
               <Pressable
                 onPress={() =>
                   navigation.navigate('StockDetail', { symbol: item.symbol })
                 }
+                accessibilityRole="button"
+                accessibilityLabel={`${item.symbol}, ${formatQty(item.quantity)} shares, value ${formatGYD(value)}, ${plDirection} ${formatGYD(Math.abs(itemPl))}`}
+                accessibilityHint="Opens stock details"
                 style={({ pressed }) => [styles.row, pressed && styles.pressed]}
               >
                 <View style={styles.left}>

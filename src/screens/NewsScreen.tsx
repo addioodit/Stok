@@ -63,7 +63,12 @@ export function NewsScreen(_props: Props) {
           />
         </View>
         {lastError && items.length === 0 ? (
-          <Pressable onPress={refresh} style={styles.errorBanner}>
+          <Pressable
+            onPress={refresh}
+            accessibilityRole="button"
+            accessibilityLabel="Retry loading news"
+            style={styles.errorBanner}
+          >
             <Text style={styles.errorText}>
               Couldn’t load news. {lastError}
             </Text>
@@ -113,6 +118,11 @@ function NewsRow({
   return (
     <Pressable
       onPress={() => onPress(item)}
+      accessibilityRole="link"
+      accessibilityLabel={`${item.title}. From ${source?.name ?? item.sourceId}${
+        item.publishedAt ? `, ${timeAgo(item.publishedAt)}` : ''
+      }`}
+      accessibilityHint="Opens article in browser"
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.rowMeta}>

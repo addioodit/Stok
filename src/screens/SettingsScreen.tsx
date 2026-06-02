@@ -134,6 +134,9 @@ export function SettingsScreen({ navigation }: Props) {
                   <Text style={styles.brokerName}>{b.name}</Text>
                   <Pressable
                     onPress={() => settings.update({ defaultBrokerId: b.id })}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Set ${b.name} as default broker`}
+                    accessibilityState={{ selected: isDefault }}
                     style={[styles.defaultPill, isDefault && styles.defaultOn]}
                   >
                     <Text
@@ -170,6 +173,9 @@ export function SettingsScreen({ navigation }: Props) {
           <View style={styles.legalCard}>
             <Pressable
               onPress={() => navigation.navigate('Backup')}
+              accessibilityRole="button"
+              accessibilityLabel="Backup and restore"
+              accessibilityHint="Export your data as a file or restore on a new device"
               style={({ pressed }) => [
                 styles.legalRow,
                 styles.legalRowLast,
@@ -182,7 +188,7 @@ export function SettingsScreen({ navigation }: Props) {
                   Export your data as a file · restore on a new device
                 </Text>
               </View>
-              <Text style={styles.legalChevron}>›</Text>
+              <Text style={styles.legalChevron} accessibilityElementsHidden importantForAccessibility="no">›</Text>
             </Pressable>
           </View>
 
@@ -194,6 +200,8 @@ export function SettingsScreen({ navigation }: Props) {
                 <Pressable
                   key={id}
                   onPress={() => navigation.navigate('Legal', { doc: id })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${doc.title}`}
                   style={({ pressed }) => [
                     styles.legalRow,
                     i === LEGAL_DOCS.length - 1 && styles.legalRowLast,
@@ -201,7 +209,7 @@ export function SettingsScreen({ navigation }: Props) {
                   ]}
                 >
                   <Text style={styles.legalRowText}>{doc.title}</Text>
-                  <Text style={styles.legalChevron}>›</Text>
+                  <Text style={styles.legalChevron} accessibilityElementsHidden importantForAccessibility="no">›</Text>
                 </Pressable>
               );
             })}
@@ -211,6 +219,9 @@ export function SettingsScreen({ navigation }: Props) {
           <View style={styles.legalCard}>
             <Pressable
               onPress={() => navigation.navigate('DebugParser')}
+              accessibilityRole="button"
+              accessibilityLabel="Parser debug"
+              accessibilityHint="Fetch GASCI live, inspect raw HTML, share captured page"
               style={({ pressed }) => [
                 styles.legalRow,
                 styles.legalRowLast,
@@ -223,7 +234,7 @@ export function SettingsScreen({ navigation }: Props) {
                   Fetch GASCI live · inspect raw HTML · share captured page
                 </Text>
               </View>
-              <Text style={styles.legalChevron}>›</Text>
+              <Text style={styles.legalChevron} accessibilityElementsHidden importantForAccessibility="no">›</Text>
             </Pressable>
           </View>
 

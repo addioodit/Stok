@@ -225,6 +225,9 @@ export function OrderTicketScreen({ route, navigation }: Props) {
               <Pressable
                 key={b.id}
                 onPress={() => setBrokerId(b.id)}
+                accessibilityRole="radio"
+                accessibilityLabel={`Broker ${b.name}`}
+                accessibilityState={{ selected }}
                 style={[styles.brokerRow, selected && styles.brokerRowSelected]}
               >
                 <View style={{ flex: 1 }}>

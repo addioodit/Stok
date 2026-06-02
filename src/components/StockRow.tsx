@@ -13,9 +13,15 @@ interface Props {
 export function StockRow({ company, onPress, rightLabel }: Props) {
   const { pct } = priceChange(company.lastPrice, company.prevClose);
   const positive = pct >= 0;
+  const direction = pct === 0 ? 'unchanged' : pct > 0 ? 'up' : 'down';
+  const pctText = pct === 0 ? '' : `, ${direction} ${Math.abs(pct * 100).toFixed(1)} percent`;
+  const a11yLabel = `${company.symbol}, ${company.name}, ${formatGYD(company.lastPrice)}${pctText}`;
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      accessibilityHint="Opens stock details"
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.left}>

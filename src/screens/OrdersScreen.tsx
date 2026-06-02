@@ -212,6 +212,9 @@ function OrderRow({ order: o, onOpen, actions }: OrderRowProps) {
   return (
     <Pressable
       onPress={onOpen}
+      accessibilityRole="button"
+      accessibilityLabel={`${o.symbol}, ${o.side} ${o.quantity} shares ${priceLabel}, ${o.status}`}
+      accessibilityHint="Opens stock details"
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
       <View style={styles.rowTop}>
@@ -283,6 +286,9 @@ function SmallButton({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={8}
       style={({ pressed }) => [
         styles.smallBtn,
         { backgroundColor: bg, borderColor: border, opacity: pressed ? 0.8 : 1 },

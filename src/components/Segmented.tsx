@@ -26,6 +26,9 @@ export function Segmented<T extends string>({
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
+            accessibilityRole="button"
+            accessibilityLabel={opt.label}
+            accessibilityState={{ selected }}
             style={[styles.opt, selected && styles.selected]}
           >
             <Text style={[styles.label, selected && styles.labelSelected]}>
