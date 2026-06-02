@@ -3,6 +3,7 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -10,17 +11,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StockRow } from '../components/StockRow';
+import { Segmented } from '../components/Segmented';
 import { theme } from '../theme';
 import { TabScreenProps } from '../navigation/types';
 import { useEffectiveCompanies } from '../hooks/useCompanies';
 import { usePriceFeed } from '../store/usePriceFeed';
 import { timeAgo } from '../utils/timeAgo';
 import { classifyFetchError } from '../utils/errorMessage';
+import { listSectors, sortAndFilter, SortKey } from '../data/marketView';
 
 type Props = TabScreenProps<'Market'>;
 
 export function MarketScreen({ navigation }: Props) {
   const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<SortKey>('symbol');
+  const [sector, setSector] = useState<string | null>(null);
   const companies = useEffectiveCompanies();
   const {
     status,
@@ -40,16 +45,11 @@ export function MarketScreen({ navigation }: Props) {
     }
   }, [lastUpdated, refresh]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return companies;
-    return companies.filter(
-      (c) =>
-        c.symbol.toLowerCase().includes(q) ||
-        c.name.toLowerCase().includes(q) ||
-        c.sector.toLowerCase().includes(q),
-    );
-  }, [query, companies]);
+  const sectors = useMemo(() => listSectors(companies), [companies]);
+  const filtered = useMemo(
+    () => sortAndFilter(companies, { query, sector, sort }),
+    [query, companies, sector, sort],
+  );
 
   return (
     <SafeAreaView edges={['top']} style={styles.container}>
@@ -108,7 +108,39 @@ export function MarketScreen({ navigation }: Props) {
           autoCapitalize="characters"
           autoCorrect={false}
           style={styles.search}
+          accessibilityLabel="Search stocks"
         />
+        <View style={styles.sortRow}>
+          <Segmented<SortKey>
+            value={sort}
+            onChange={setSort}
+            options={[
+              { label: 'A–Z', value: 'symbol' },
+              { label: 'Gainers', value: 'gainers' },
+              { label: 'Losers', value: 'losers' },
+              { label: 'Price', value: 'price' },
+            ]}
+          />
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.sectorRow}
+        >
+          <SectorPill
+            label="All sectors"
+            active={sector === null}
+            onPress={() => setSector(null)}
+          />
+          {sectors.map((s) => (
+            <SectorPill
+              key={s}
+              label={s}
+              active={sector === s}
+              onPress={() => setSector(sector === s ? null : s)}
+            />
+          ))}
+        </ScrollView>
       </View>
       <FlatList
         data={filtered}
@@ -134,6 +166,34 @@ export function MarketScreen({ navigation }: Props) {
         ListEmptyComponent={<Text style={styles.empty}>No matches.</Text>}
       />
     </SafeAreaView>
+  );
+}
+
+function SectorPill({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Filter by ${label}`}
+      accessibilityState={{ selected: active }}
+      style={({ pressed }) => [
+        styles.pill,
+        active && styles.pillActive,
+        pressed && !active && styles.pillPressed,
+      ]}
+    >
+      <Text style={[styles.pillText, active && styles.pillTextActive]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -229,6 +289,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
+  sortRow: { marginTop: theme.spacing(1) },
+  sectorRow: {
+    paddingTop: theme.spacing(1),
+    paddingRight: theme.spacing(2),
+    gap: 6,
+  },
+  pill: {
+    paddingHorizontal: theme.spacing(1.25),
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.bg,
+  },
+  pillActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  pillPressed: { backgroundColor: theme.colors.surface },
+  pillText: {
+    fontSize: theme.font.tiny,
+    fontWeight: '600',
+    color: theme.colors.text,
+  },
+  pillTextActive: { color: theme.colors.textInverse },
   empty: {
     textAlign: 'center',
     padding: theme.spacing(3),
