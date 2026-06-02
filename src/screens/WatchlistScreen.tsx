@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWatchlist } from '../store/useWatchlist';
 import { useEffectiveCompanies } from '../hooks/useCompanies';
 import { StockRow } from '../components/StockRow';
+import { StaleDataHint } from '../components/StaleDataHint';
 import { theme } from '../theme';
 import { TabScreenProps } from '../navigation/types';
 
@@ -20,6 +21,9 @@ export function WatchlistScreen({ navigation }: Props) {
     <SafeAreaView edges={['top']} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Watchlist</Text>
+        {companies.length > 0 ? (
+          <StaleDataHint style={styles.staleHint} />
+        ) : null}
       </View>
       {companies.length === 0 ? (
         <View style={styles.empty}>
@@ -57,6 +61,9 @@ const styles = StyleSheet.create({
     fontSize: theme.font.h1,
     fontWeight: '700',
     color: theme.colors.text,
+  },
+  staleHint: {
+    marginTop: theme.spacing(1.5),
   },
   empty: {
     flex: 1,

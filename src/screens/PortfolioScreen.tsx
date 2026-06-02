@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePortfolio } from '../store/usePortfolio';
 import { useEffectiveCompanies } from '../hooks/useCompanies';
 import { isPending, useOrders } from '../store/useOrders';
+import { StaleDataHint } from '../components/StaleDataHint';
 import { theme } from '../theme';
 import { formatGYD, formatPct, formatQty } from '../utils/format';
 import { TabScreenProps } from '../navigation/types';
@@ -61,6 +62,7 @@ export function PortfolioScreen({ navigation }: Props) {
           {pl >= 0 ? '+' : ''}
           {formatGYD(pl)} ({formatPct(plPct)})
         </Text>
+        <StaleDataHint style={styles.staleHint} />
       </View>
       {holdings.length === 0 ? (
         <View style={styles.empty}>
@@ -180,6 +182,9 @@ const styles = StyleSheet.create({
     fontSize: theme.font.body,
     fontWeight: '600',
     marginTop: 4,
+  },
+  staleHint: {
+    marginTop: theme.spacing(1.5),
   },
   empty: {
     flex: 1,

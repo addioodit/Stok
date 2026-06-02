@@ -14,6 +14,7 @@ import { dividendsForSymbol } from '../data/dividends';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { LineChart } from '../components/LineChart';
 import { Segmented } from '../components/Segmented';
+import { StaleDataHint } from '../components/StaleDataHint';
 import { theme } from '../theme';
 import {
   formatGYD,
@@ -79,6 +80,8 @@ export function StockDetailScreen({ route, navigation }: Props) {
       <Text style={styles.symbol}>{company.symbol}</Text>
       <Text style={styles.name}>{company.name}</Text>
       <Text style={styles.sector}>{company.sector}</Text>
+
+      <StaleDataHint style={styles.staleHint} />
 
       <View style={styles.priceBlock}>
         <Text style={styles.price}>{formatGYD(company.lastPrice)}</Text>
@@ -286,6 +289,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
+  staleHint: { marginTop: theme.spacing(2) },
   priceBlock: { marginTop: theme.spacing(3) },
   price: {
     fontSize: 36,
