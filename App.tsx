@@ -8,6 +8,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { AcceptScreen } from './src/screens/AcceptScreen';
 import { ProfileSetupScreen } from './src/screens/ProfileSetupScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { isAccepted, useAcceptance } from './src/store/useAcceptance';
 import { useProfile } from './src/store/useProfile';
 import { useOnboarding } from './src/store/useOnboarding';
@@ -43,17 +44,19 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      {!ready ? (
-        <View style={{ flex: 1, backgroundColor: theme.colors.bg }} />
-      ) : !accepted ? (
-        <AcceptScreen />
-      ) : !username ? (
-        <ProfileSetupScreen />
-      ) : !seenOnboarding ? (
-        <OnboardingScreen />
-      ) : (
-        <RootNavigator />
-      )}
+      <ErrorBoundary>
+        {!ready ? (
+          <View style={{ flex: 1, backgroundColor: theme.colors.bg }} />
+        ) : !accepted ? (
+          <AcceptScreen />
+        ) : !username ? (
+          <ProfileSetupScreen />
+        ) : !seenOnboarding ? (
+          <OnboardingScreen />
+        ) : (
+          <RootNavigator />
+        )}
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }

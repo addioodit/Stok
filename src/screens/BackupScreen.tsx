@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { applyBackup } from '../data/backup';
+import { resetAllUserData } from '../data/reset';
 import { exportBackup, pickBackup } from '../utils/backupIo';
 import { usePortfolio } from '../store/usePortfolio';
 import { useWatchlist } from '../store/useWatchlist';
@@ -39,6 +40,23 @@ export function BackupScreen(_props: Props) {
     } finally {
       setBusy('idle');
     }
+  };
+
+  const onReset = () => {
+    Alert.alert(
+      'Reset all data?',
+      'Wipes every store on this device and returns Stok to first-launch. Export a backup first if you want to keep what you have.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset everything',
+          style: 'destructive',
+          onPress: () => {
+            resetAllUserData();
+          },
+        },
+      ],
+    );
   };
 
   const onImport = async () => {
@@ -162,6 +180,23 @@ export function BackupScreen(_props: Props) {
         The backup does not include cached prices, the news cache, or your
         legal acceptance — those are re-fetched or re-confirmed automatically.
       </Text>
+
+      <Text style={styles.dangerSection}>Danger zone</Text>
+      <View style={styles.dangerCard}>
+        <Text style={styles.dangerTitle}>Reset all data</Text>
+        <Text style={styles.dangerBody}>
+          Wipes every persisted store on this device and walks you back
+          through legal acceptance, profile setup, and the tour. Export a
+          backup first if you want to come back to this state.
+        </Text>
+        <View style={{ height: theme.spacing(1.25) }} />
+        <PrimaryButton
+          label="Reset all data"
+          variant="negative"
+          onPress={onReset}
+          disabled={busy !== 'idle'}
+        />
+      </View>
     </ScrollView>
   );
 }
@@ -247,5 +282,32 @@ const styles = StyleSheet.create({
     fontSize: theme.font.tiny,
     color: theme.colors.textSecondary,
     lineHeight: 16,
+  },
+  dangerSection: {
+    marginTop: theme.spacing(4),
+    fontSize: theme.font.tiny,
+    fontWeight: '700',
+    color: theme.colors.negative,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: theme.spacing(0.5),
+  },
+  dangerCard: {
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.negative,
+    backgroundColor: '#FEF2F2',
+    padding: theme.spacing(2),
+  },
+  dangerTitle: {
+    fontSize: theme.font.body,
+    fontWeight: '700',
+    color: theme.colors.negative,
+  },
+  dangerBody: {
+    marginTop: 4,
+    fontSize: theme.font.small,
+    color: theme.colors.negative,
+    lineHeight: 20,
   },
 });
