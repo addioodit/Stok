@@ -275,8 +275,20 @@ export function OrderTicketScreen({ route, navigation }: Props) {
           label={`Email order to ${broker.name.split(' ')[0]}`}
           variant={side === 'buy' ? 'positive' : 'negative'}
           onPress={sendEmail}
-          disabled={!canSubmit}
+          disabled={!canSubmit || !brokerEmail}
         />
+        {!brokerEmail ? (
+          <Text style={styles.actionHint}>
+            Set {broker.name}&apos;s email in Settings → Brokers to enable
+            email send.
+          </Text>
+        ) : !canSubmit ? (
+          <Text style={styles.actionHint}>
+            Enter a quantity above zero
+            {orderType === 'limit' ? ' and a limit price' : ''} to enable
+            send.
+          </Text>
+        ) : null}
         <View style={{ height: theme.spacing(1) }} />
         <PrimaryButton
           label={`Call ${broker.phone}`}
@@ -386,6 +398,12 @@ const styles = StyleSheet.create({
     fontSize: theme.font.tiny,
     color: theme.colors.textSecondary,
     marginTop: theme.spacing(2),
+    lineHeight: 16,
+  },
+  actionHint: {
+    marginTop: theme.spacing(0.75),
+    fontSize: theme.font.tiny,
+    color: theme.colors.textSecondary,
     lineHeight: 16,
   },
 });
