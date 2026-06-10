@@ -52,16 +52,13 @@ export function OrderTicketScreen({ route, navigation }: Props) {
 
   const canSubmit = qtyNum > 0 && (orderType === 'market' || priceNum > 0);
 
-  if (!company || !broker) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.warn}>Missing company or broker.</Text>
-      </View>
-    );
-  }
-
+  // useMemo must run on every render — keep it above any early return.
+  // The factory closes over `company` / `broker`, but the inner function is
+  // only invoked from the form below, which we don't render when either
+  // is missing.
   const buildOrderText = useMemo(
     () => () => {
+      if (!company) return '';
       const lines = [
         `${side.toUpperCase()} order — ${company.symbol} (${company.name})`,
         '',
@@ -96,6 +93,14 @@ export function OrderTicketScreen({ route, navigation }: Props) {
       notes,
     ],
   );
+
+  if (!company || !broker) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.warn}>Missing company or broker.</Text>
+      </View>
+    );
+  }
 
   const orderSnapshot = () => ({
     symbol,

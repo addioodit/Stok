@@ -58,11 +58,6 @@ export function DebugParserScreen() {
     [result],
   );
   const counts = useMemo(() => {
-    const c = { parsed: 0, found: 0, missing: 0 } as const as {
-      parsed: number;
-      found: number;
-      missing: number;
-    };
     let parsed = 0;
     let found = 0;
     let missing = 0;
