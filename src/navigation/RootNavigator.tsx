@@ -16,6 +16,7 @@ import { LegalScreen } from '../screens/LegalScreen';
 import { DebugParserScreen } from '../screens/DebugParserScreen';
 import { BackupScreen } from '../screens/BackupScreen';
 import { ALL_LEGAL } from '../data/legal';
+import { isPending, useOrders } from '../store/useOrders';
 import { RootStackParamList, TabsParamList } from './types';
 import { theme } from '../theme';
 
@@ -36,6 +37,10 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
 }
 
 function TabsNavigator() {
+  const pendingOrders = useOrders((s) =>
+    s.orders.filter((o) => isPending(o.status)).length,
+  );
+
   return (
     <Tabs.Navigator
       screenOptions={{
@@ -69,6 +74,13 @@ function TabsNavigator() {
         name="Portfolio"
         component={PortfolioScreen}
         options={{
+          tabBarBadge: pendingOrders > 0 ? pendingOrders : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: theme.colors.warn,
+            color: theme.colors.textInverse,
+            fontSize: 11,
+            fontWeight: '700',
+          },
           tabBarIcon: ({ focused }) => (
             <TabIcon label="💼" focused={focused} />
           ),
