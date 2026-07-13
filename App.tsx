@@ -28,11 +28,19 @@ const sentryDsn = Constants.expoConfig?.extra?.sentryDsn as
 const sentryEnabled =
   typeof sentryDsn === 'string' && sentryDsn.startsWith('https://');
 
+const appVersion =
+  (Constants.expoConfig?.version as string | undefined) ?? '0.0.0';
+
 if (sentryEnabled) {
   Sentry.init({
     dsn: sentryDsn,
     // Keep dev errors out of Sentry; flip to true to debug the wiring.
     enabled: !__DEV__,
+    // Tag every event with the app version + build kind so crashes are
+    // grouped correctly across releases and dev/preview/prod don't share
+    // an issue bucket.
+    release: `stok@${appVersion}`,
+    environment: __DEV__ ? 'development' : 'production',
     tracesSampleRate: 0,
     enableNativeFramesTracking: false,
   });
