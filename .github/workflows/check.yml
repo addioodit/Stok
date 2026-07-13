@@ -28,3 +28,6 @@ jobs:
 
       - name: Unit tests
         run: npm test -- --ci --runInBand
+
+      - name: Validate Expo config
+        run: npx --no-install expo config --type public > /dev/null
