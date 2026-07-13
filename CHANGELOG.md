@@ -12,12 +12,23 @@ Notable changes per release. Dates are calendar (YYYY-MM-DD); versions follow `a
 - Stale-prices banner (`StaleDataHint`) on Portfolio, Watchlist, and Stock Detail when the priceFeed is missing or older than 3 days.
 - Market list sort (A–Z / Gainers / Losers / Price) with a horizontal sector pill filter; same sort added to Watchlist.
 - Pending-orders badge on the Portfolio tab.
+- Portfolio empty state now has a Browse Market CTA that jumps to the tab.
 - News tab: RSS/Atom aggregation of Guyana + Caribbean sources with per-source failure reporting.
-- ESLint with `eslint-config-expo` and a CI lint step; project root README.
+- ESLint with `eslint-config-expo` and a CI lint step; project root README + CHANGELOG.
+- `expo config` sanity check in CI so a broken manifest fails the push, not the next EAS build.
+- `.nvmrc` + `engines.node` pinning Node 20.
+- Sentry release + environment tags; `beforeSend` filter drops transient network exceptions.
+- `fetchText` retries once on 5xx and network throws (with backoff); 4xx skips retry.
 
 ### Fixed
 - Conditional `useMemo` after an early return in `OrderTicketScreen` (caught by ESLint react-hooks rule).
+- Email/Call buttons on OrderTicket no longer silently fail on iOS: `LSApplicationQueriesSchemes` allows `mailto:` + `tel:`, and `Linking.openURL` is called directly (try/catch) instead of gating on `canOpenURL`.
+- News article open uses the same try/catch pattern.
+- Splash screen now held (`preventAutoHideAsync`) until every hydration store reports ready, then dismissed from an effect — no more splash → blank → app flash.
 - A few hand-rolled column-header matches in `marketReportParser` weren't case-tolerant — `findCol` now lowercases before matching.
+
+### Test coverage
+- Bumped from ~104 to 147 tests across 20 suites. New suites: `backup`, `reset`, `marketView`, `StaleDataHint`, `useOnboarding`, `useWatchlist`, `useDividends`, `useProfile`, `useSettings`, `useHistory`, `fetchText`.
 
 ### Notes
 - Bundle IDs (`gy.stok.app`) and the app name in `app.json` are still placeholders. Update them with the product owner before submitting to either store.
