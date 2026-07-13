@@ -75,9 +75,21 @@ export function PortfolioScreen({ navigation }: Props) {
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>No positions yet</Text>
           <Text style={styles.emptyBody}>
-            After a broker confirms a fill, open the stock and tap "Record fill"
-            to track it here.
+            Pick a stock from Market, tap Buy to prepare an order for your
+            broker, then come back and Record fill once they confirm.
           </Text>
+          <View style={{ height: theme.spacing(2) }} />
+          <Pressable
+            onPress={() => navigation.jumpTo('Market')}
+            accessibilityRole="button"
+            accessibilityLabel="Browse Market"
+            style={({ pressed }) => [
+              styles.emptyBtn,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={styles.emptyBtnText}>Browse Market</Text>
+          </Pressable>
         </View>
       ) : (
         <FlatList
@@ -213,6 +225,18 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: theme.spacing(1),
     textAlign: 'center',
+    lineHeight: 20,
+  },
+  emptyBtn: {
+    paddingHorizontal: theme.spacing(2),
+    paddingVertical: theme.spacing(1.25),
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.primary,
+  },
+  emptyBtnText: {
+    color: theme.colors.textInverse,
+    fontSize: theme.font.body,
+    fontWeight: '600',
   },
   row: {
     flexDirection: 'row',
