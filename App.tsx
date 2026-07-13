@@ -43,6 +43,21 @@ if (sentryEnabled) {
     environment: __DEV__ ? 'development' : 'production',
     tracesSampleRate: 0,
     enableNativeFramesTracking: false,
+    // Drop the two noisy classes of "error" that are really transient
+    // network conditions: fetch timeouts (AbortError from fetchText) and
+    // "Network request failed" from a dropped connection mid-fetch. They
+    // are surfaced to the user via classifyFetchError already; Sentry
+    // triage doesn't need each occurrence.
+    beforeSend: (event, hint) => {
+      const err = hint?.originalException;
+      const message =
+        (err instanceof Error ? err.message : String(err ?? '')) || '';
+      const name = err instanceof Error ? err.name : '';
+      if (name === 'AbortError' || /Network request failed/i.test(message)) {
+        return null;
+      }
+      return event;
+    },
   });
 }
 
