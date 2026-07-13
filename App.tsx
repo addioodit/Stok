@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import * as Sentry from '@sentry/react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AcceptScreen } from './src/screens/AcceptScreen';
 import { ProfileSetupScreen } from './src/screens/ProfileSetupScreen';
@@ -13,6 +14,12 @@ import { isAccepted, useAcceptance } from './src/store/useAcceptance';
 import { useProfile } from './src/store/useProfile';
 import { useOnboarding } from './src/store/useOnboarding';
 import { theme } from './src/theme';
+
+// Hold the native splash until the hydration gate has decided which screen
+// to render — otherwise the user sees splash → blank → app.
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Safe to swallow — if the splash is already gone we just render.
+});
 
 const sentryDsn = Constants.expoConfig?.extra?.sentryDsn as
   | string
@@ -40,6 +47,12 @@ function App() {
   const seenOnboarding = useOnboarding((s) => s.seen);
 
   const ready = acceptanceHydrated && profileHydrated && onboardingHydrated;
+
+  useEffect(() => {
+    if (ready) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [ready]);
 
   return (
     <SafeAreaProvider>

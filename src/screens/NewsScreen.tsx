@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Linking,
   Pressable,
@@ -36,8 +37,15 @@ export function NewsScreen(_props: Props) {
     return items.filter((it) => sourceById(it.sourceId)?.region === region);
   }, [items, region]);
 
-  const open = (item: NewsItem) => {
-    void Linking.openURL(item.link);
+  const open = async (item: NewsItem) => {
+    try {
+      await Linking.openURL(item.link);
+    } catch {
+      Alert.alert(
+        "Can't open article",
+        'Your device has no browser configured to handle this link.',
+      );
+    }
   };
 
   return (

@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "gy.stok.app"
+      "bundleIdentifier": "gy.stok.app",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["mailto", "tel"]
+      }
     },
     "android": {
       "package": "gy.stok.app",

@@ -124,24 +124,33 @@ export function OrderTicketScreen({ route, navigation }: Props) {
     const url = `mailto:${encodeURIComponent(brokerEmail)}?subject=${encodeURIComponent(
       subject,
     )}&body=${encodeURIComponent(buildOrderText())}`;
-    const can = await Linking.canOpenURL(url);
-    if (!can) {
-      Alert.alert('No mail app', 'Could not open the mail composer.');
+    // openURL is more reliable than canOpenURL — iOS silently returns
+    // false for schemes not in LSApplicationQueriesSchemes even when a
+    // handler is present.
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(
+        'No mail app',
+        "Couldn't open the mail composer. Set up Mail (iOS) or another email app and try again.",
+      );
       return;
     }
-    await Linking.openURL(url);
     logOrder({ ...orderSnapshot(), status: 'emailed' });
     navigation.goBack();
   };
 
   const callBroker = async () => {
     const url = `tel:${broker.phone.replace(/\s/g, '')}`;
-    const can = await Linking.canOpenURL(url);
-    if (!can) {
-      Alert.alert('Cannot place call', 'Telephony not available.');
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(
+        'Cannot place call',
+        'Telephony is not available on this device.',
+      );
       return;
     }
-    await Linking.openURL(url);
     if (qtyNum > 0) {
       logOrder({ ...orderSnapshot(), status: 'called' });
       navigation.goBack();
